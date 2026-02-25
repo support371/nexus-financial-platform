@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ApexTrust Banking</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1E37;--navy-mid:#1E3A5F;--navy-lt:#2D5086;
+  --gold:#C9A84C;--gold-lt:#E8C96C;--gold-dim:#8B7340;
+  --bg:#F1F5F9;--surface:#fff;--surface2:#F8FAFC;
+  --text:#0F172A;--text2:#475569;--text3:#94A3B8;
+  --ok:#059669;--ok-bg:#ECFDF5;--warn:#D97706;--warn-bg:#FFFBEB;
+  --err:#DC2626;--err-bg:#FEF2F2;--info:#2563EB;--info-bg:#EFF6FF;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --r:8px;--rlg:12px;
+  --sh:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --sh-md:0 4px 6px -1px rgba(0,0,0,.1);
+  --sh-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05)
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(---bg);color:var(---text);line-height:1.5}
+a{color:var(---gold-dim);text-decoration:none}
+a:hover{text-decoration:underline}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit;font-size:14px}
+
+/* layout */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:256px;background:var(---navy);color:#fff;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:50;display:flex;flex-direction:column}
+.main{margin-left:256px;flex:1;min-height:100vh}
+.ph{padding:28px 32px 0}
+.pc{padding:24px 32px 48px}
+.ptitle{font-size:22px;font-weight:700}
+.psub{font-size:14px;color:var(---text2);margin-top:4px}
+
+/* sidebar */
+.sl{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.nav-logo{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(---gold);color:var(---navy);font-weight:800;font-size:14px;border-radius:8px;margin-bottom:8px}
+.brand-name{font-size:15px;font-weight:700;color:var(---gold);letter-spacing:.02em}
+.brand-tag{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+.su{padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
+.su-name{font-size:13px;font-weight:600;color:#fff}
+.su-email{font-size:12px;color:rgba(255,255,255,.5)}
+.su-ref{font-size:11px;font-family:monospace;color:var(---gold);margin-top:2px}
+.snav{padding:8px 0;flex:1}
+.nl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:10px 18px 3px}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 18px;color:rgba(255,255,255,.7);font-size:13px;border-left:3px solid transparent;cursor:pointer;transition:all .15s;text-decoration:none}
+.nav-link:hover{background:rgba(255,255,255,.05);color:#fff;text-decoration:none}
+.nav-link.active{background:rgba(201,168,76,.12);color:var(---gold);border-left-color:var(---gold)}
+.nav-link .ico{font-size:15px;width:18px;text-align:center}
+.sfoot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.1)}
+.btn-so{width:100%;padding:7px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);border-radius:var(---r);font-size:13px;transition:all .15s}
+.btn-so:hover{background:rgba(255,255,255,.15);color:#fff}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(---r);font-size:14px;font-weight:500;border:none;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(---gold);color:var(---navy)}
+.btn-primary:hover{background:var(---gold-lt)}
+.btn-secondary{background:var(---surface);color:var(---text);border:1px solid var(---border2)}
+.btn-secondary:hover{background:var(---bg)}
+.btn-danger{background:var(---err);color:#fff}
+.btn-danger:hover{background:#B91C1C}
+.btn-success{background:var(---ok);color:#fff}
+.btn-success:hover{background:#047857}
+.btn-ghost{background:transparent;color:var(---text2);border:1px solid var(---border)}
+.btn-ghost:hover{background:var(---bg)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-lg{padding:11px 22px;font-size:15px}
+.btn-full{width:100%;justify-content:center}
+.btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+
+/* forms */
+.fg{margin-bottom:14px}
+.flabel{display:block;font-size:13px;font-weight:500;margin-bottom:5px}
+.finput{width:100%;padding:8px 11px;border:1px solid var(---border2);border-radius:var(---r);font-size:14px;color:var(---text);background:var(---surface);outline:none;transition:border-color .15s,box-shadow .15s}
+.finput:focus{border-color:var(---gold);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.finput::placeholder{color:var(---text3)}
+.fselect{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:30px}
+.fhint{font-size:12px;color:var(---text2);margin-top:3px}
+.ferr{font-size:12px;color:var(---err);margin-top:3px;display:none}
+.igrp{display:flex}
+.igrp .finput{border-radius:var(---r) 0 0 var(---r);border-right:none;flex:1}
+.igrp .btn{border-radius:0 var(---r) var(---r) 0}
+
+/* cards/surfaces */
+.card{background:var(---surface);border-radius:var(---rlg);box-shadow:var(---sh);border:1px solid var(---border)}
+.ch{padding:14px 18px;border-bottom:1px solid var(---border);display:flex;align-items:center;justify-content:space-between}
+.chtitle{font-size:14px;font-weight:600}
+.cb{padding:18px}
+.stat-card{background:var(---surface);border-radius:var(---rlg);padding:18px;box-shadow:var(---sh);border:1px solid var(---border)}
+.stat-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(---text2)}
+.stat-val{font-size:26px;font-weight:800;margin-top:5px}
+.stat-sub{font-size:13px;color:var(---text2);margin-top:3px}
+
+/* grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+
+/* tables */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(---surface2)}
+th{padding:9px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(---text2);border-bottom:1px solid var(---border)}
+td{padding:11px 14px;border-bottom:1px solid var(---border);color:var(---text)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(---surface2)}
+
+/* badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.badge-ok{background:var(---ok-bg);color:var(---ok)}
+.badge-warn{background:var(---warn-bg);color:var(---warn)}
+.badge-err{background:var(---err-bg);color:var(---err)}
+.badge-info{background:var(---info-bg);color:var(---info)}
+.badge-neutral{background:var(---bg);color:var(---text2);border:1px solid var(---border)}
+.badge-gold{background:rgba(201,168,76,.15);color:var(---gold-dim)}
+
+/* tabs */
+.tabs{display:flex;border-bottom:1px solid var(---border);margin-bottom:18px}
+.tab{padding:9px 14px;font-size:14px;font-weight:500;color:var(---text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab.active{color:var(---gold-dim);border-bottom-color:var(---gold)}
+.tab:hover{color:var(---text)}
+
+/* alerts */
+.alert{padding:11px 14px;border-radius:var(---r);font-size:14px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+.alert-ok{background:var(---ok-bg);color:#065F46;border-left:4px solid var(---ok)}
+.alert-warn{background:var(---warn-bg);color:#92400E;border-left:4px solid var(---warn)}
+.alert-err{background:var(---err-bg);color:#991B1B;border-left:4px solid var(---err)}
+.alert-info{background:var(---info-bg);color:#1E40AF;border-left:4px solid var(---info)}
+
+/* code */
+.codeblk{background:var(---navy);color:#A8D8EA;padding:13px 15px;border-radius:var(---r);font-family:monospace;font-size:13px;word-break:break-all;position:relative}
+.copybtn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.7);padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer}
+.copybtn:hover{background:rgba(255,255,255,.2)}
+
+/* toast */
+#toast-container{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(---navy);color:#fff;padding:11px 15px;border-radius:var(---r);box-shadow:var(---sh-lg);font-size:14px;min-width:260px;max-width:380px;animation:tsi .2s ease}
+.toast-ok{background:#065F46}
+.toast-err{background:#991B1B}
+.toast-warn{background:#92400E}
+@keyframes tsi{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* modal */
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(---surface);border-radius:var(---rlg);box-shadow:var(---sh-lg);width:100%;max-width:460px;max-height:90vh;overflow-y:auto}
+.mh{padding:18px 22px 14px;border-bottom:1px solid var(---border);display:flex;align-items:center;justify-content:space-between}
+.mhtitle{font-size:16px;font-weight:700}
+.mclose{background:none;border:none;font-size:20px;color:var(---text2);cursor:pointer;line-height:1}
+.mb{padding:18px 22px}
+.mf{padding:14px 22px;border-top:1px solid var(---border);display:flex;gap:9px;justify-content:flex-end}
+
+/* landing */
+.lnav{display:flex;align-items:center;justify-content:space-between;padding:14px 40px;background:var(---navy);position:sticky;top:0;z-index:10}
+.llogo{font-size:17px;font-weight:700;color:var(---gold)}
+.lnav-links{display:flex;gap:10px;align-items:center}
+.hero{background:linear-gradient(135deg,var(---navy) 0%,var(---navy-mid) 60%,#0D2E50 100%);color:#fff;padding:72px 40px;text-align:center}
+.hero-badge{display:inline-block;background:rgba(201,168,76,.15);color:var(---gold);border:1px solid rgba(201,168,76,.3);padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}
+.htitle{font-size:46px;font-weight:800;line-height:1.1;margin-bottom:18px}
+.hsub{font-size:17px;color:rgba(255,255,255,.7);max-width:520px;margin:0 auto 30px}
+.hcta{display:flex;gap:10px;justify-content:center}
+.hstats{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:640px;margin:56px auto 0}
+.hstat-val{font-size:30px;font-weight:800;color:var(---gold)}
+.hstat-lbl{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+.fsec{padding:56px 40px;max-width:1080px;margin:0 auto}
+.stitle{font-size:30px;font-weight:700;text-align:center;margin-bottom:8px}
+.ssub{text-align:center;color:var(---text2);margin-bottom:40px}
+.feat-card{background:var(---surface);border-radius:var(---rlg);padding:22px;border:1px solid var(---border);box-shadow:var(---sh)}
+.feat-ico{font-size:28px;margin-bottom:12px}
+.feat-title{font-size:15px;font-weight:600;margin-bottom:7px}
+.feat-desc{font-size:13px;color:var(---text2)}
+.trust-band{background:var(---navy);color:#fff;padding:44px 40px;text-align:center}
+.trust-items{display:flex;justify-content:center;gap:44px;flex-wrap:wrap;margin-top:28px}
+.trust-val{font-size:26px;font-weight:700;color:var(---gold)}
+.trust-lbl{font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.rail-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(---border);border-radius:99px;font-size:12px;font-weight:500;margin:3px}
+.lfooter{background:var(---navy);color:rgba(255,255,255,.45);text-align:center;padding:20px 40px;font-size:12px}
+
+/* auth */
+.auth-outer{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(---bg);padding:22px}
+.auth-card{background:var(---surface);border-radius:var(---rlg);box-shadow:var(---sh-lg);border:1px solid var(---border);width:100%;max-width:420px}
+.auth-header{padding:26px 26px 0;text-align:center}
+.auth-logo{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(---navy);color:var(---gold);font-weight:800;font-size:16px;border-radius:10px;margin-bottom:10px}
+.auth-brand{font-size:15px;font-weight:700;color:var(---navy)}
+.auth-title{font-size:20px;font-weight:700;margin-top:16px}
+.auth-sub{font-size:13px;color:var(---text2);margin-top:5px}
+.auth-body{padding:22px 26px 26px}
+.auth-foot{text-align:center;font-size:13px;color:var(---text2);margin-top:14px}
+.rgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:7px}
+.ropt{padding:9px 6px;border:2px solid var(---border);border-radius:var(---r);text-align:center;cursor:pointer;transition:all .15s}
+.ropt:hover{border-color:var(---gold)}
+.ropt.sel{border-color:var(---gold);background:rgba(201,168,76,.07)}
+.ropt .rflag{font-size:18px}
+.ropt .rname{font-size:10px;font-weight:600;margin-top:3px;color:var(---text2)}
+.ropt .rrail{font-size:9px;color:var(---text3)}
+.demo-box{background:var(---surface2);border:1px solid var(---border);border-radius:var(---r);padding:12px;margin-top:14px;font-size:12px}
+.demo-box .demo-title{font-weight:600;margin-bottom:6px;color:var(---text2)}
+.demo-row{display:flex;justify-content:space-between;padding:2px 0;font-family:monospace;font-size:11px;color:var(---text2)}
+
+/* dashboard */
+.wbar{background:linear-gradient(135deg,var(---navy) 0%,var(---navy-mid) 100%);color:#fff;padding:22px;border-radius:var(---rlg);margin-bottom:20px}
+.wbar h2{font-size:19px;font-weight:700}
+.wbar p{font-size:13px;opacity:.75;margin-top:3px}
+.wbar-ref{font-family:monospace;font-size:13px;color:var(---gold);margin-top:7px;display:flex;align-items:center;gap:6px}
+
+/* tx list */
+.tx-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(---border)}
+.tx-item:last-child{border-bottom:none}
+.tx-ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.tx-cr .tx-ico{background:var(---ok-bg)}
+.tx-db .tx-ico{background:var(---err-bg)}
+.tx-info{flex:1;margin-left:10px}
+.tx-desc{font-size:13px;font-weight:500}
+.tx-dt{font-size:11px;color:var(---text2)}
+.tx-amt{font-size:13px;font-weight:600}
+.tx-cr .tx-amt{color:var(---ok)}
+.tx-db .tx-amt{color:var(---err)}
+
+/* accounts */
+.acc-visual{background:linear-gradient(135deg,var(---navy) 0%,var(---navy-mid) 100%);border-radius:var(---rlg);padding:22px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden}
+.acc-visual::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.04)}
+.acc-rail{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(---gold)}
+.acc-num{font-size:22px;font-weight:700;font-family:monospace;margin:10px 0 7px;letter-spacing:.08em}
+.acc-bal{font-size:32px;font-weight:800}
+.acc-bal-cur{font-size:16px;opacity:.75}
+.acc-dg{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.acc-di{background:var(---surface2);border-radius:var(---r);padding:11px 13px;border:1px solid var(---border)}
+.acc-di-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(---text2)}
+.acc-di-val{font-size:14px;font-weight:600;font-family:monospace;margin-top:3px;word-break:break-all}
+
+/* deposits */
+.dep-steps{display:flex;align-items:center;gap:6px;margin-bottom:22px}
+.ds-num{width:26px;height:26px;border-radius:50%;background:var(---bg);border:2px solid var(---border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(---text2);flex-shrink:0}
+.ds-num.active{background:var(---gold);border-color:var(---gold);color:var(---navy)}
+.ds-num.done{background:var(---ok);border-color:var(---ok);color:#fff}
+.ds-line{flex:1;height:2px;background:var(---border)}
+.ds-line.done{background:var(---ok)}
+.qbox{background:var(---surface2);border:1px solid var(---border);border-radius:var(---rlg);padding:18px}
+.qrow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(---border);font-size:14px}
+.qrow:last-child{border-bottom:none;font-weight:700;font-size:15px}
+.qtimer-wrap{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:14px;color:var(---text2)}
+.qtimer{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(---warn-bg);border:2px solid var(---warn);font-size:14px;font-weight:700;color:var(---warn);font-family:monospace}
+.qtimer.urgent{background:var(---err-bg);border-color:var(---err);color:var(---err)}
+.btcbox{background:var(---navy);border-radius:var(---r);padding:14px;margin-bottom:12px}
+.btcbox .blbl{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(---gold);margin-bottom:5px}
+.btcbox .baddr{color:#A8D8EA;font-family:monospace;font-size:12px;word-break:break-all}
+.memo-req{background:var(---err-bg);border:1px solid #FECACA;border-radius:var(---r);padding:12px;margin-bottom:12px;font-size:13px;color:var(---err)}
+.memo-req strong{font-weight:700}
+
+/* kyc */
+.kyc-sc{border-radius:var(---rlg);padding:18px;margin-bottom:18px}
+.kyc-none{background:var(---warn-bg);border:1px solid var(---warn)}
+.kyc-sub{background:var(---info-bg);border:1px solid var(---info)}
+.kyc-app{background:var(---ok-bg);border:1px solid var(---ok)}
+.kyc-rej{background:var(---err-bg);border:1px solid var(---err)}
+.stepper{display:flex;margin-bottom:22px}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+.step:not(:last-child)::after{content:'';position:absolute;top:13px;left:50%;right:-50%;height:2px;background:var(---border);z-index:0}
+.step.done:not(:last-child)::after{background:var(---ok)}
+.step--c{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative;z-index:1}
+.step--c.pend{background:var(---bg);border:2px solid var(---border);color:var(---text2)}
+.step--c.act{background:var(---info);border:2px solid var(---info);color:#fff}
+.step--c.done{background:var(---ok);color:#fff}
+.step--lbl{font-size:11px;color:var(---text2);margin-top:5px;text-align:center}
+
+/* cards */
+.vc{width:320px;height:195px;background:linear-gradient(135deg,#0B1E37 0%,#1E3A5F 60%,#2D5086 100%);border-radius:16px;padding:22px;color:#fff;position:relative;overflow:hidden;box-shadow:var(---sh-lg)}
+.vc::before{content:'';position:absolute;right:-25px;bottom:-25px;width:140px;height:140px;border-radius:50%;background:rgba(201,168,76,.15)}
+.vc-logo{font-size:12px;font-weight:700;color:var(---gold);letter-spacing:.04em}
+.vc-num{font-size:16px;letter-spacing:.18em;font-family:monospace;margin:18px 0 14px}
+.vc-holder{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+.vc-exp{font-size:10px;opacity:.65;margin-top:3px}
+.vc-net{position:absolute;bottom:18px;right:22px;font-size:18px}
+.vc.frozen{filter:grayscale(.7);opacity:.75}
+.elig-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(---r);margin-bottom:7px;font-size:13px}
+.elig-met{background:var(---ok-bg);color:#065F46}
+.elig-unmet{background:var(---err-bg);color:#991B1B}
+
+/* compliance */
+.score-ring{position:relative;width:88px;height:88px;flex-shrink:0}
+.score-ring svg{transform:rotate(-90deg)}
+.score-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-num{font-size:20px;font-weight:800;color:var(---navy)}
+.score-lbl{font-size:9px;color:var(---text2);text-transform:uppercase;letter-spacing:.04em}
+.kpi-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(---border);font-size:14px}
+.kpi-row:last-child{border-bottom:none}
+.kpi-val{font-weight:600}
+.inc-card{border:1px solid var(---border);border-radius:var(---r);padding:12px 14px;margin-bottom:7px}
+.inc-s1{border-left:4px solid var(---err)}
+.inc-s2{border-left:4px solid var(---warn)}
+.inc-s3{border-left:4px solid var(---info)}
+.arow{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(---border);font-size:13px}
+.arow:last-child{border-bottom:none}
+.stars{display:flex;gap:2px}
+.star{color:var(---border2);font-size:16px}
+.star.on{color:var(---gold)}
+
+/* audit */
+.al-entry{font-size:12px;border-bottom:1px solid var(---border);padding:9px 0;display:grid;grid-template-columns:40px 160px 1fr 100px;gap:8px;align-items:start}
+.al-seq{color:var(---text2);font-family:monospace}
+.al-action{font-weight:600;font-size:11px}
+.al-meta{color:var(---text2)}
+.al-hash{font-family:monospace;font-size:10px;color:var(---text3)}
+.int-pass{color:var(---ok);font-weight:600;display:flex;align-items:center;gap:5px;font-size:14px}
+.int-fail{color:var(---err);font-weight:600;display:flex;align-items:center;gap:5px;font-size:14px}
+
+/* misc utils */
+.sep{height:1px;background:var(---border);margin:20px 0}
+.row{display:flex;gap:14px}
+.col{flex:1}
+.tr{text-align:right}
+.tc{text-align:center}
+.tsm{font-size:13px}
+.txs{font-size:12px}
+.t2{color:var(---text2)}
+.tok{color:var(---ok)}
+.terr{color:var(---err)}
+.gold{color:var(---gold-dim)}
+.mono{font-family:monospace}
+.bold{font-weight:700}
+.mt4{margin-top:4px}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.mt16{margin-top:16px}
+.mt20{margin-top:20px}
+.mt24{margin-top:24px}
+.mb8{margin-bottom:8px}
+.mb12{margin-bottom:12px}
+.mb16{margin-bottom:16px}
+.mb20{margin-bottom:20px}
+.flex{display:flex}
+.fbet{display:flex;justify-content:space-between;align-items:center}
+.fcen{display:flex;align-items:center}
+.gap6{gap:6px}
+.gap8{gap:8px}
+.gap10{gap:10px}
+.gap12{gap:12px}
+.hide{display:none!important}
+.empty{text-align:center;padding:36px 18px;color:var(---text2)}
+.empty .eico{font-size:36px;margin-bottom:10px;opacity:.45}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-container"></div>
+<div id="modal-container"></div>
+<script>
+'use strict';
+
+// ==================== CONFIG ====================
+const SK = 'apextrust_banking_v1';
+const CFG = {
+  name: 'ApexTrust Banking',
+  refPrefix: 'APT-',
+  btcRate: 62500,
+  quoteTTL: 900,
+  depositFee: 0.005
+};
+const REGIONS = {
+  US:{name:'United States',flag:'&#127482;&#127480;',rail:'ACH',cur:'USD'},
+  UK:{name:'United Kingdom',flag:'&#127468;&#127463;',rail:'FPS',cur:'GBP'},
+  MX:{name:'Mexico',flag:'&#127474;&#127485;',rail:'SPEI',cur:'MXN'},
+  BR:{name:'Brazil',flag:'&#127463;&#127479;',rail:'PIX',cur:'BRL'},
+  EU:{name:'European Union',flag:'&#127466;&#127482;',rail:'SEPA',cur:'EUR'}
+};
+
+// ==================== UTILS ====================
+function uid(n){n=n||12;const arr=new Uint8Array(n);crypto.getRandomValues(arr);return Array.from(arr).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,n)}
+function genRef(prefix){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s=prefix+'-';for(let i=0;i<8;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+function genBtcAddr(){const c='abcdefghijklmnpqrstuvwxyz0123456789';let s='bc1q';for(let i=0;i<38;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+function djb2(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)^s.charCodeAt(i);return(h>>>0).toString(16).padStart(8,'0')}
+function auditHash(e,ph){return djb2(e.seq+'|'+e.action+'|'+e.userId+'|'+e.entityId+'|'+e.ts+'|'+ph)}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fBTC(n){return(parseFloat(n)||0).toFixed(6)+' BTC'}
+function fFiat(n,c){n=parseFloat(n)||0;const sym={USD:'$',GBP:'\u00A3',EUR:'\u20AC',MXN:'$',BRL:'R$'};return(sym[c]||'')+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+(c||'')}
+function fDate(ts){return new Date(ts).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}
+function fDT(ts){return new Date(ts).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function ago(ts){const d=Date.now()-new Date(ts).getTime(),m=Math.floor(d/60000);if(m<1)return 'just now';if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return fDate(ts)}
+function secsLeft(ts){return Math.floor((new Date(ts).getTime()-Date.now())/1000)}
+function fSecs(s){if(s<=0)return 'EXPIRED';const m=Math.floor(s/60),sec=s%60;return m+':'+(sec<10?'0':'')+sec}
+function genCard(){return'4'+Array.from({length:3},()=>Math.floor(1000+Math.random()*9000)).join(' ')+' '+Math.floor(1000+Math.random()*9000)}
+function genSortCode(){return[20,48,40][Math.floor(Math.random()*3)]+'-'+Math.floor(10+Math.random()*89)+'-'+Math.floor(10+Math.random()*89)}
+function genRouting(){const r=['021000021','021000089','026009593','028000024'];return r[Math.floor(Math.random()*r.length)]}
+function genIBAN(){return'DE89 '+[3704,4044,0532,0130].map(n=>n.toString().padStart(4,'0')).join(' ')}
+function genCLABE(){return Array.from({length:18},()=>Math.floor(Math.random()*10)).join('')}
+function downloadJSON(obj,filename){const b=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=filename;a.click();URL.revokeObjectURL(u)}
+
+// ==================== STORAGE ====================
+function dbGet(k){try{return JSON.parse(localStorage.getItem(SK+'_'+k))}catch{return null}}
+function dbSet(k,v){localStorage.setItem(SK+'_'+k,JSON.stringify(v))}
+function dbDel(k){localStorage.removeItem(SK+'_'+k)}
+
+// ==================== SESSION ====================
+let CU = null; // current user
+function loadSession(){const id=sessionStorage.getItem(SK+'_sess');if(id){CU=getUsers().find(u=>u.id===id)||null}}
+function saveSession(id){sessionStorage.setItem(SK+'_sess',id)}
+function clearSession(){sessionStorage.removeItem(SK+'_sess');CU=null}
+
+// ==================== USERS ====================
+function getUsers(){return dbGet('users')||[]}
+function saveUsers(u){dbSet('users',u)}
+function getUserById(id){return getUsers().find(u=>u.id===id)}
+function getUserByEmail(e){return getUsers().find(u=>u.email.toLowerCase()===e.toLowerCase())}
+function createUser(data){const users=getUsers();const u={id:'usr_'+uid(10),...data,createdAt:new Date().toISOString()};users.push(u);saveUsers(users);return u}
+function updateUser(id,patch){const users=getUsers().map(u=>u.id===id?{...u,...patch}:u);saveUsers(users);if(CU&&CU.id===id)CU={...CU,...patch}}
+
+// ==================== ACCOUNTS ====================
+function getAccounts(){return dbGet('accounts')||[]}
+function saveAccounts(a){dbSet('accounts',a)}
+function getUserAccounts(uid){return getAccounts().filter(a=>a.userId===uid)}
+function getAccById(id){return getAccounts().find(a=>a.id===id)}
+function createAccount(userId,region){
+  const accs=getAccounts();
+  const details={};
+  if(region==='US'){details.routingNumber=genRouting();details.accountNumber=uid(10)}
+  if(region==='UK'){details.sortCode=genSortCode();details.accountNumber=uid(8)}
+  if(region==='MX'){details.clabe=genCLABE()}
+  if(region==='BR'){details.pixKey='+55'+uid(10)}
+  if(region==='EU'){details.iban=genIBAN();details.bic='APXTGB2L'}
+  const a={id:'acc_'+uid(10),userId,region,rail:REGIONS[region].rail,currency:REGIONS[region].cur,...details,createdAt:new Date().toISOString()};
+  accs.push(a);saveAccounts(accs);return a
+}
+
+// ==================== LEDGER ====================
+function getLedger(){return dbGet('ledger')||[]}
+function saveLedger(l){dbSet('ledger',l)}
+function getAccLedger(accId){return getLedger().filter(e=>e.accountId===accId)}
+function getUserLedger(uid){return getLedger().filter(e=>e.userId===uid).sort((a,b)=>new Date(b.ts)-new Date(a.ts))}
+function getAccBalance(accId){return getAccLedger(accId).reduce((s,e)=>s+(e.type==='credit'?e.btcAmount:-e.btcAmount),0)}
+function getPortBTC(userId){return getUserAccounts(userId).reduce((s,a)=>s+getAccBalance(a.id),0)}
+function getPortUSD(userId){return getPortBTC(userId)*CFG.btcRate}
+function addLedger(entry){const l=getLedger();l.push(entry);saveLedger(l)}
+
+// ==================== DEPOSITS ====================
+function getDeposits(){return dbGet('deposits')||[]}
+function saveDeposits(d){dbSet('deposits',d)}
+function getUserDeposits(uid){return getDeposits().filter(d=>d.userId===uid).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))}
+function getDepById(id){return getDeposits().find(d=>d.id===id)}
+function createDeposit(data){const deps=getDeposits();const d={id:'dep_'+uid(10),...data,createdAt:new Date().toISOString()};deps.push(d);saveDeposits(deps);return d}
+function updateDeposit(id,patch){const deps=getDeposits().map(d=>d.id===id?{...d,...patch}:d);saveDeposits(deps)}
+
+// ==================== KYC ====================
+function getKYCs(){return dbGet('kyc')||[]}
+function saveKYCs(k){dbSet('kyc',k)}
+function getUserKYC(uid){return getKYCs().find(k=>k.userId===uid)}
+function createKYC(data){const k=getKYCs();const r={id:'kyc_'+uid(10),...data};k.push(r);saveKYCs(k);return r}
+function updateKYC(userId,patch){const k=getKYCs().map(r=>r.userId===userId?{...r,...patch}:r);saveKYCs(k)}
+
+// ==================== CARDS ====================
+function getCards(){return dbGet('cards')||[]}
+function saveCards(c){dbSet('cards',c)}
+function getUserCard(uid){return getCards().find(c=>c.userId===uid&&c.status!=='cancelled')}
+function isEligible(user){
+  if(!user||user.region!=='US')return{ok:false,reasons:{region:false,kyc:user&&user.kycStatus==='approved',bal:false}};
+  const kyc=user.kycStatus==='approved';
+  const bal=getPortUSD(user.id)>=1000;
+  return{ok:kyc&&bal,reasons:{region:true,kyc,bal}}
+}
+function createCard(user,accId){const cards=getCards();const c={id:'card_'+uid(10),userId:user.id,accountId:accId,number:genCard(),holder:user.name.toUpperCase(),expiry:'12/28',cvv:String(Math.floor(100+Math.random()*900)),status:'active',spendLimit:5000,createdAt:new Date().toISOString()};cards.push(c);saveCards(cards);return c}
+function updateCard(id,patch){const cards=getCards().map(c=>c.id===id?{...c,...patch}:c);saveCards(cards)}
+
+// ==================== AUDIT ====================
+function getAudit(){return dbGet('audit')||[]}
+function saveAudit(a){dbSet('audit',a)}
+function appendAudit(action,userId,entityType,entityId,details){
+  const log=getAudit();
+  const seq=log.length+1;
+  const prev=log.length>0?log[log.length-1].hash:'00000000';
+  const ts=new Date().toISOString();
+  const entry={id:'aud_'+uid(8),seq,action,userId,entityType,entityId,details:details||{},ts,prevHash:prev,hash:''};
+  entry.hash=auditHash(entry,prev);
+  log.push(entry);saveAudit(log);return entry
+}
+function verifyIntegrity(){
+  const log=getAudit();
+  if(log.length===0)return{ok:true,msg:'Audit log is empty.'};
+  let prev='00000000';
+  for(let i=0;i<log.length;i++){
+    const e=log[i];
+    const expected=auditHash(e,prev);
+    if(e.hash!==expected)return{ok:false,msg:'Integrity failure at entry #'+e.seq+'. Expected hash '+expected+', got '+e.hash};
+    if(e.seq!==i+1)return{ok:false,msg:'Sequence gap at entry #'+(i+1)};
+    prev=e.hash
+  }
+  return{ok:true,msg:'All '+log.length+' entries verified. Hash chain intact.'}
+}
+
+// ==================== INCIDENTS ====================
+function getIncidents(){return dbGet('incidents')||[]}
+function saveIncidents(i){dbSet('incidents',i)}
+function createIncident(data){const inc=getIncidents();const i={id:'inc_'+uid(8),...data,ts:new Date().toISOString()};inc.push(i);saveIncidents(inc);return i}
+function updateIncident(id,patch){const inc=getIncidents().map(i=>i.id===id?{...i,...patch}:i);saveIncidents(inc)}
+
+// ==================== RATINGS ====================
+function getRatings(){return dbGet('ratings')||[]}
+function saveRatings(r){dbSet('ratings',r)}
+function addRating(data){const r=getRatings();r.push({id:'rat_'+uid(8),...data,ts:new Date().toISOString()});saveRatings(r)}
+function ratingAvgs(){const r=getRatings();if(!r.length)return{reliability:0,support:0,transparency:0,count:0};const s=r.reduce((a,x)=>({reliability:a.reliability+x.reliability,support:a.support+x.support,transparency:a.transparency+x.transparency}),{reliability:0,support:0,transparency:0});return{reliability:s.reliability/r.length,support:s.support/r.length,transparency:s.transparency/r.length,count:r.length}}
+
+// ==================== COMPLIANCE ====================
+function getCompliance(){return dbGet('compliance')||defaultCompliance()}
+function saveCompliance(c){dbSet('compliance',c)}
+function defaultCompliance(){return{score:87,amlStatus:'compliant',kycRate:72,slaUptime:'99.94',slaResponse:'< 4h',lastAudit:'2025-11-15T00:00:00.000Z',nextAudit:'2026-05-15T00:00:00.000Z',assertions:[{label:'AML/KYC Policy',status:'compliant'},{label:'Data Residency (EU)',status:'compliant'},{label:'SOC 2 Type II',status:'in_review'},{label:'ISO 27001',status:'compliant'},{label:'PCI DSS Level 1',status:'compliant'},{label:'GDPR',status:'compliant'}]}}
+
+// ==================== WIZARD STATE ====================
+const S = {
+  dep:{step:1,amount:'',isBtc:false,quote:null,depId:null,activeTab:'new'},
+  kyc:{step:1,data:{}}
+};
+let quoteTimer=null;
+
+// ==================== ROUTER ====================
+function navigate(hash){history.pushState(null,'',location.pathname+'#'+hash);route()}
+function route(){
+  const h=location.hash.replace('#','').replace(/^\/+/,'')||'/';
+  const user=CU;
+  const pub=['/','/signin','/signup'];
+  if(!pub.includes('/'+h)&&!h.startsWith('admin')&&!user){navigate('/signin');return}
+  if(h.startsWith('admin')&&(!user||user.role!=='admin')){navigate('/signin');return}
+  clearInterval(quoteTimer);
+  const map={
+    '':renderLanding,'/':renderLanding,
+    '/signin':renderSignin,'signin':renderSignin,
+    '/signup':renderSignup,'signup':renderSignup,
+    '/dashboard':renderDashboard,'dashboard':renderDashboard,
+    '/accounts':renderAccounts,'accounts':renderAccounts,
+    '/deposits':renderDeposits,'deposits':renderDeposits,
+    '/kyc':renderKYC,'kyc':renderKYC,
+    '/cards':renderCards,'cards':renderCards,
+    '/compliance':renderCompliance,'compliance':renderCompliance,
+    '/settings':renderSettings,'settings':renderSettings,
+    '/admin':renderAdmin,'admin':renderAdmin,
+    '/admin/clients':renderAdminClients,'admin/clients':renderAdminClients,
+    '/admin/deposits':renderAdminDeposits,'admin/deposits':renderAdminDeposits,
+    '/admin/cards':renderAdminCards,'admin/cards':renderAdminCards,
+    '/admin/kyc':renderAdminKYC,'admin/kyc':renderAdminKYC,
+    '/admin/compliance':renderAdminCompliance,'admin/compliance':renderAdminCompliance,
+    '/admin/audit':renderAdminAudit,'admin/audit':renderAdminAudit
+  };
+  const fn=map[h]||map['/'+h]||renderLanding;
+  document.getElementById('app').innerHTML=fn();
+  if((h==='deposits'||h==='/deposits')&&S.dep.step===2&&S.dep.quote){startQuoteTimer(S.dep.quote.expiresAt)}
+  window.scrollTo(0,0)
+}
+window.addEventListener('popstate',route);
+
+// ==================== UI HELPERS ====================
+function badge(text,type){return '<span class="badge badge-'+type+'">'+esc(text)+'</span>'}
+function sbadge(status){
+  const m={approved:['ok','Approved'],confirmed:['ok','Confirmed'],active:['ok','Active'],resolved:['neutral','Resolved'],
+    open:['err','Open'],rejected:['err','Rejected'],failed:['err','Failed'],cancelled:['err','Cancelled'],
+    frozen:['warn','Frozen'],submitted:['info','Under Review'],investigating:['warn','Investigating'],
+    mitigating:['warn','Mitigating'],pending:['warn','Pending'],none:['neutral','Not Started'],
+    compliant:['ok','Compliant'],in_review:['warn','In Review'],non_compliant:['err','Non-Compliant'],
+    sev1:['err','SEV-1'],sev2:['warn','SEV-2'],sev3:['info','SEV-3']};
+  const[t,l]=m[status]||['neutral',status];return badge(l,t)
+}
+function toast(msg,type){
+  const tc=document.getElementById('toast-container');if(!tc)return;
+  const t=document.createElement('div');t.className='toast'+(type?' toast-'+type:'');t.textContent=msg;
+  tc.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function closeModal(){const mc=document.getElementById('modal-container');if(mc)mc.innerHTML=''}
+function showModal(html){const mc=document.getElementById('modal-container');if(mc)mc.innerHTML=html}
+function starsHtml(n,editable,prefix){
+  prefix=prefix||'star';n=Math.round(n)||0;
+  return Array.from({length:5},(_,i)=>'<span class="star'+(i<n?' on':'')+'"'+(editable?' data-action="rateStar" data-prefix="'+prefix+'" data-val="'+(i+1)+'"':'')+'>&#9733;</span>').join('')
+}
+function avatar(name){const i=(name||'?')[0].toUpperCase();return '<span class="client-av">'+i+'</span>'}
+function sidebar(user){
+  const h=location.hash.replace('#','').replace(/^\/+/,'')||'/';
+  const a=(href)=>('/'+h===href||h===href.slice(1))?'active':'';
+  const isAdmin=user&&user.role==='admin';
+  const clientLinks=`
+    <a href="#/dashboard" class="nav-link ${a('/dashboard')}"><span class="ico">&#9783;</span>Dashboard</a>
+    <a href="#/accounts" class="nav-link ${a('/accounts')}"><span class="ico">&#127968;</span>Accounts</a>
+    <a href="#/deposits" class="nav-link ${a('/deposits')}"><span class="ico">&#8383;</span>Deposits</a>
+    <a href="#/kyc" class="nav-link ${a('/kyc')}"><span class="ico">&#128100;</span>KYC Verification</a>
+    <a href="#/cards" class="nav-link ${a('/cards')}"><span class="ico">&#128179;</span>Cards</a>
+    <a href="#/compliance" class="nav-link ${a('/compliance')}"><span class="ico">&#9989;</span>Compliance</a>
+    <a href="#/settings" class="nav-link ${a('/settings')}"><span class="ico">&#9881;</span>Settings</a>`;
+  const adminLinks=`
+    <a href="#/admin" class="nav-link ${a('/admin')}"><span class="ico">&#9783;</span>Dashboard</a>
+    <a href="#/admin/clients" class="nav-link ${a('/admin/clients')}"><span class="ico">&#128101;</span>Clients</a>
+    <a href="#/admin/deposits" class="nav-link ${a('/admin/deposits')}"><span class="ico">&#8383;</span>Deposits</a>
+    <a href="#/admin/cards" class="nav-link ${a('/admin/cards')}"><span class="ico">&#128179;</span>Cards</a>
+    <a href="#/admin/kyc" class="nav-link ${a('/admin/kyc')}"><span class="ico">&#128100;</span>KYC</a>
+    <a href="#/admin/compliance" class="nav-link ${a('/admin/compliance')}"><span class="ico">&#9989;</span>Compliance</a>
+    <a href="#/admin/audit" class="nav-link ${a('/admin/audit')}"><span class="ico">&#128203;</span>Ops / Audit</a>`;
+  return`<div class="sidebar">
+    <div class="sl"><div class="nav-logo">AT</div><div class="brand-name">ApexTrust Banking</div><div class="brand-tag">${isAdmin?'Admin Portal':'Client Portal'}</div></div>
+    <div class="su"><div class="su-name">${esc(user?user.name:'')}</div><div class="su-email">${esc(user?user.email:'')}</div>${!isAdmin?'<div class="su-ref">'+esc(user?user.referenceCode:'')+'</div>':''}</div>
+    <nav class="snav">${isAdmin?adminLinks:clientLinks}</nav>
+    <div class="sfoot"><button class="btn-so" data-action="signout">Sign Out</button></div>
+  </div>`
+}
+function shell(user,content){return`<div class="shell">${sidebar(user)}<div class="main">${content}</div></div>`}
+function depSteps(cur){
+  const s=(n)=>`<div class="ds-num ${n<cur?'done':n===cur?'active':''}">${n<cur?'&#10003;':n}</div>`;
+  const l=(done)=>`<div class="ds-line ${done?'done':''}"></div>`;
+  return`<div class="dep-steps">${s(1)}${l(cur>1)}${s(2)}${l(cur>2)}${s(3)}</div>`
+}
+function kycSteps(cur){
+  const labels=['Personal','Identity','Address'];
+  return`<div class="stepper">${labels.map((lb,i)=>{const n=i+1;const cls=n<cur?'done':n===cur?'act':'pend';return`<div class="step ${n<cur?'done':''}""><div class="step--c ${cls}">${n<cur?'&#10003;':n}</div><div class="step--lbl">${lb}</div></div>`}).join('')}</div>`
+}
+function startQuoteTimer(expiresAt){
+  clearInterval(quoteTimer);
+  quoteTimer=setInterval(()=>{
+    const el=document.getElementById('qtimer');
+    if(!el){clearInterval(quoteTimer);return}
+    const rem=secsLeft(expiresAt);
+    el.textContent=fSecs(rem);
+    if(rem<=0){el.className='qtimer urgent';clearInterval(quoteTimer);const nb=document.getElementById('new-quote-btn');if(nb)nb.classList.remove('hide')}
+    else if(rem<120)el.className='qtimer urgent';
+    else el.className='qtimer'
+  },1000)
+}
+
+// ==================== LANDING PAGE ====================
+function renderLanding(){
+  return`<div>
+  <nav class="lnav">
+    <div class="llogo">&#9670; ApexTrust Banking</div>
+    <div class="lnav-links">
+      <a href="#/signin" class="btn btn-ghost btn-sm">Sign In</a>
+      <a href="#/signup" class="btn btn-primary btn-sm">Open Account</a>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-badge">INSTITUTIONAL BITCOIN BANKING</div>
+    <h1 class="htitle">Institutional-Grade<br>Bitcoin Banking</h1>
+    <p class="hsub">Multi-rail settlement, KYC/AML compliance, real-time audit, and a fully gated card program - built for the modern financial institution.</p>
+    <div class="hcta">
+      <a href="#/signup" class="btn btn-primary btn-lg">Open an Account</a>
+      <a href="#/signin" class="btn btn-ghost btn-lg" style="color:#fff;border-color:rgba(255,255,255,.3)">Sign In</a>
+    </div>
+    <div class="hstats">
+      <div><div class="hstat-val">5</div><div class="hstat-lbl">Payment Rails</div></div>
+      <div><div class="hstat-val">99.9%</div><div class="hstat-lbl">Uptime SLA</div></div>
+      <div><div class="hstat-val">APT-</div><div class="hstat-lbl">Ref Code Prefix</div></div>
+    </div>
+  </div>
+  <div class="fsec">
+    <h2 class="stitle">Everything You Need</h2>
+    <p class="ssub">A complete bitcoin banking stack with compliance-first design</p>
+    <div class="g3">
+      <div class="feat-card"><div class="feat-ico">&#8383;</div><div class="feat-title">Bitcoin Deposits</div><div class="feat-desc">Real-time quotes with rate lock, fee transparency, and reference-code memo enforcement for every inbound transfer.</div></div>
+      <div class="feat-card"><div class="feat-ico">&#127970;</div><div class="feat-title">Multi-Rail Accounts</div><div class="feat-desc">US ACH, UK FPS, MX SPEI, BR PIX, and EU SEPA - all provisioned at signup with region-specific banking identifiers.</div></div>
+      <div class="feat-card"><div class="feat-ico">&#128100;</div><div class="feat-title">KYC / AML</div><div class="feat-desc">3-step identity verification workflow with document collection, admin review queue, and automated status updates.</div></div>
+      <div class="feat-card"><div class="feat-ico">&#128179;</div><div class="feat-title">Virtual Cards</div><div class="feat-desc">Gated issuance requiring KYC approval, US region, and a minimum $1,000 portfolio. Freeze/unfreeze instantly.</div></div>
+      <div class="feat-card"><div class="feat-ico">&#9989;</div><div class="feat-title">Compliance Center</div><div class="feat-desc">Posture scoring, SLA KPIs, incident management (SEV-1/2/3), service ratings, and one-click export packs.</div></div>
+      <div class="feat-card"><div class="feat-ico">&#128203;</div><div class="feat-title">Append-Only Audit</div><div class="feat-desc">Every action is logged in a sequential hash chain. Tamper-evident integrity check and full JSON export for auditors.</div></div>
+    </div>
+  </div>
+  <div class="trust-band">
+    <h2 style="font-size:26px;font-weight:700">Institutional Trust by Design</h2>
+    <div class="trust-items">
+      <div><div class="trust-val">99.94%</div><div class="trust-lbl">Uptime (30d)</div></div>
+      <div><div class="trust-val">&#60; 4h</div><div class="trust-lbl">Support SLA</div></div>
+      <div><div class="trust-val">87/100</div><div class="trust-lbl">Compliance Score</div></div>
+      <div><div class="trust-val">SOC 2</div><div class="trust-lbl">In Review</div></div>
+      <div><div class="trust-val">ISO 27001</div><div class="trust-lbl">Certified</div></div>
+    </div>
+  </div>
+  <div style="background:var(---surface);padding:40px">
+    <div style="max-width:800px;margin:0 auto;text-align:center">
+      <h2 class="stitle" style="margin-bottom:16px">Supported Payment Rails</h2>
+      <div>
+        <span class="rail-chip">&#127482;&#127480; US ACH</span>
+        <span class="rail-chip">&#127468;&#127463; UK FPS</span>
+        <span class="rail-chip">&#127474;&#127485; MX SPEI</span>
+        <span class="rail-chip">&#127463;&#127479; BR PIX</span>
+        <span class="rail-chip">&#127466;&#127482; EU SEPA</span>
+      </div>
+    </div>
+  </div>
+  <div class="lfooter">ApexTrust Banking is a fictional entity created for demo purposes only. &copy; 2026 ApexTrust Banking. All rights reserved.</div>
+  </div>`
+}
+
+// ==================== SIGNIN ====================
+function renderSignin(){
+  return`<div class="auth-outer">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">AT</div>
+      <div class="auth-brand">ApexTrust Banking</div>
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-sub">Sign in to your account</p>
+    </div>
+    <div class="auth-body">
+      <form id="signin-form" autocomplete="off">
+        <div class="fg"><label class="flabel">Email address</label><input class="finput" type="email" name="email" placeholder="you@example.com" required></div>
+        <div class="fg"><label class="flabel">Password</label><input class="finput" type="password" name="password" placeholder="Your password" required></div>
+        <div id="signin-err" class="ferr" style="display:none;margin-bottom:10px"></div>
+        <button type="submit" class="btn btn-primary btn-full btn-lg">Sign In</button>
+      </form>
+      <p class="auth-foot">No account? <a href="#/signup">Create one</a></p>
+      <div class="demo-box">
+        <div class="demo-title">Demo Credentials</div>
+        <div class="demo-row"><span>admin@apextrust.demo</span><span>Admin@123</span></div>
+        <div class="demo-row"><span>alice@apextrust.demo</span><span>Demo@123</span></div>
+        <div class="demo-row"><span>bob@apextrust.demo</span><span>Demo@123</span></div>
+        <div class="demo-row"><span>carlos@apextrust.demo</span><span>Demo@123</span></div>
+        <div class="demo-row"><span>emma@apextrust.demo</span><span>Demo@123</span></div>
+      </div>
+    </div>
+  </div>
+  </div>`
+}
+
+// ==================== SIGNUP ====================
+function renderSignup(){
+  return`<div class="auth-outer">
+  <div class="auth-card" style="max-width:480px">
+    <div class="auth-header">
+      <div class="auth-logo">AT</div>
+      <div class="auth-brand">ApexTrust Banking</div>
+      <h2 class="auth-title">Open an account</h2>
+      <p class="auth-sub">Get started in under a minute</p>
+    </div>
+    <div class="auth-body">
+      <form id="signup-form" autocomplete="off">
+        <div class="fg"><label class="flabel">Full name</label><input class="finput" type="text" name="name" placeholder="Alice Smith" required></div>
+        <div class="fg"><label class="flabel">Email address</label><input class="finput" type="email" name="email" placeholder="you@example.com" required></div>
+        <div class="fg"><label class="flabel">Password</label><input class="finput" type="password" name="password" placeholder="Min 8 characters" required minlength="8"></div>
+        <div class="fg">
+          <label class="flabel">Region &amp; Payment Rail</label>
+          <div class="rgrid" id="region-grid">
+            ${Object.entries(REGIONS).map(([k,v])=>`<div class="ropt" data-region="${k}" data-action="selectRegion"><div class="rflag">${v.flag}</div><div class="rname">${k}</div><div class="rrail">${v.rail}</div></div>`).join('')}
+          </div>
+          <input type="hidden" name="region" id="region-val" required>
+          <div class="fhint">Determines your banking rail and account currency</div>
+        </div>
+        <div id="signup-err" class="ferr" style="display:none;margin-bottom:10px"></div>
+        <button type="submit" class="btn btn-primary btn-full btn-lg">Create Account</button>
+      </form>
+      <p class="auth-foot">Already have an account? <a href="#/signin">Sign in</a></p>
+    </div>
+  </div>
+  </div>`
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard(){
+  const user=CU;
+  const accs=getUserAccounts(user.id);
+  const totalBTC=getPortBTC(user.id);
+  const totalUSD=getPortUSD(user.id);
+  const txs=getUserLedger(user.id).slice(0,5);
+  const kyc=getUserKYC(user.id);
+  const card=getUserCard(user.id);
+  const txHtml=txs.length?txs.map(e=>`
+    <div class="tx-item ${e.type==='credit'?'tx-cr':'tx-db'}">
+      <div class="tx-ico">${e.type==='credit'?'&#8593;':'&#8595;'}</div>
+      <div class="tx-info"><div class="tx-desc">${esc(e.description)}</div><div class="tx-dt">${ago(e.ts)}</div></div>
+      <div class="tx-amt">${e.type==='credit'?'+':'-'}${fBTC(e.btcAmount)}</div>
+    </div>`).join(''):`<div class="empty"><div class="eico">&#8383;</div><p>No transactions yet.<br><a href="#/deposits">Make your first deposit</a></p></div>`;
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Dashboard</h1><p class="psub">Overview of your ApexTrust account</p></div>
+  <div class="pc">
+    <div class="wbar">
+      <h2>Welcome back, ${esc(user.name.split(' ')[0])}</h2>
+      <p>${REGIONS[user.region].flag} ${REGIONS[user.region].name} &mdash; ${REGIONS[user.region].rail} Rail</p>
+      <div class="wbar-ref">&#128273; Reference Code: <strong>${esc(user.referenceCode)}</strong></div>
+    </div>
+    <div class="g3 mb20">
+      <div class="stat-card">
+        <div class="stat-lbl">BTC Balance</div>
+        <div class="stat-val" style="font-size:22px;font-family:monospace">${fBTC(totalBTC)}</div>
+        <div class="stat-sub">${fFiat(totalUSD,'USD')} at current rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">KYC Status</div>
+        <div class="stat-val" style="font-size:18px;margin-top:8px">${sbadge(user.kycStatus||'none')}</div>
+        <div class="stat-sub">${user.kycStatus==='approved'?'Verified &#10003;':user.kycStatus==='submitted'?'Under review':'<a href="#/kyc">Complete verification</a>'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Virtual Card</div>
+        <div class="stat-val" style="font-size:18px;margin-top:8px">${sbadge(card?card.status:'none')}</div>
+        <div class="stat-sub">${card?'&#9679;&#9679;&#9679;&#9679; '+card.number.slice(-4):'<a href="#/cards">View eligibility</a>'}</div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><span class="chtitle">Recent Transactions</span><a href="#/deposits" style="font-size:13px">View all</a></div>
+        <div class="cb">${txHtml}</div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="chtitle">Quick Actions</span></div>
+        <div class="cb" style="display:flex;flex-direction:column;gap:10px">
+          <a href="#/deposits" class="btn btn-primary btn-full">&#8383; New Bitcoin Deposit</a>
+          <a href="#/accounts" class="btn btn-secondary btn-full">&#127968; View Account Details</a>
+          ${user.kycStatus!=='approved'?'<a href="#/kyc" class="btn btn-ghost btn-full">&#128100; Complete KYC</a>':''}
+          ${!card&&user.kycStatus==='approved'?'<a href="#/cards" class="btn btn-ghost btn-full">&#128179; Request Card</a>':''}
+        </div>
+      </div>
+    </div>
+  </div>`)
+}
+
+// ==================== ACCOUNTS ====================
+function renderAccounts(){
+  const user=CU;
+  const accs=getUserAccounts(user.id);
+  const acc=accs[0];
+  if(!acc)return shell(user,'<div class="ph"><h1 class="ptitle">Accounts</h1></div><div class="pc"><div class="alert alert-warn">No account found. Please contact support.</div></div>');
+  const bal=getAccBalance(acc.id);
+  const portUSD=getPortUSD(user.id);
+  const ledger=getAccLedger(acc.id).sort((a,b)=>new Date(b.ts)-new Date(a.ts)).slice(0,20);
+  let details='';
+  if(acc.region==='US'){details=`<div class="acc-di"><div class="acc-di-lbl">Routing Number</div><div class="acc-di-val">${esc(acc.routingNumber)}</div></div><div class="acc-di"><div class="acc-di-lbl">Account Number</div><div class="acc-di-val">${esc(acc.accountNumber)}</div></div>`}
+  if(acc.region==='UK'){details=`<div class="acc-di"><div class="acc-di-lbl">Sort Code</div><div class="acc-di-val">${esc(acc.sortCode)}</div></div><div class="acc-di"><div class="acc-di-lbl">Account Number</div><div class="acc-di-val">${esc(acc.accountNumber)}</div></div>`}
+  if(acc.region==='MX'){details=`<div class="acc-di"><div class="acc-di-lbl">CLABE</div><div class="acc-di-val">${esc(acc.clabe)}</div></div>`}
+  if(acc.region==='BR'){details=`<div class="acc-di"><div class="acc-di-lbl">PIX Key</div><div class="acc-di-val">${esc(acc.pixKey)}</div></div>`}
+  if(acc.region==='EU'){details=`<div class="acc-di"><div class="acc-di-lbl">IBAN</div><div class="acc-di-val">${esc(acc.iban)}</div></div><div class="acc-di"><div class="acc-di-lbl">BIC</div><div class="acc-di-val">${esc(acc.bic)}</div></div>`}
+  const txRows=ledger.length?ledger.map(e=>`<tr><td>${fDT(e.ts)}</td><td>${esc(e.description)}</td><td class="${e.type==='credit'?'tok':'terr'}">${e.type==='credit'?'+':'-'}${fBTC(e.btcAmount)}</td><td class="t2">${fFiat(e.fiatAmount,acc.currency)}</td></tr>`).join(''):'<tr><td colspan="4" class="tc t2" style="padding:20px">No transactions yet</td></tr>';
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Accounts</h1><p class="psub">Your ${REGIONS[user.region].name} ${REGIONS[user.region].rail} account</p></div>
+  <div class="pc">
+    <div class="acc-visual">
+      <div class="acc-rail">${acc.rail} &bull; ${acc.currency}</div>
+      <div class="acc-num">${user.referenceCode}</div>
+      <div class="acc-bal">${fBTC(bal)} <span class="acc-bal-cur">${fFiat(bal*CFG.btcRate,acc.currency)}</span></div>
+    </div>
+    <div class="g2 mb20">
+      <div class="card">
+        <div class="ch"><span class="chtitle">Account Details</span></div>
+        <div class="cb"><div class="acc-dg">${details}</div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="chtitle">Portfolio Value</span></div>
+        <div class="cb">
+          <div class="kpi-row"><span>BTC Holdings</span><span class="kpi-val mono">${fBTC(bal)}</span></div>
+          <div class="kpi-row"><span>USD Value</span><span class="kpi-val">${fFiat(bal*CFG.btcRate,'USD')}</span></div>
+          <div class="kpi-row"><span>${acc.currency} Value</span><span class="kpi-val">${fFiat(bal*CFG.btcRate,'USD')}</span></div>
+          <div class="kpi-row"><span>Rate (BTC/USD)</span><span class="kpi-val">$${CFG.btcRate.toLocaleString()}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="chtitle">Transaction History</span></div>
+      <div class="tw"><table><thead><tr><th>Date</th><th>Description</th><th>BTC Amount</th><th>Fiat Value</th></tr></thead><tbody>${txRows}</tbody></table></div>
+    </div>
+  </div>`)
+}
+
+// ==================== DEPOSITS ====================
+function renderDeposits(){
+  const user=CU;
+  const accs=getUserAccounts(user.id);
+  const acc=accs[0];
+  const deps=getUserDeposits(user.id);
+  const tab=S.dep.activeTab||'new';
+  const histRows=deps.length?deps.map(d=>`<tr><td class="mono txs">${esc(d.id.slice(-8))}</td><td>${fBTC(d.btcAmount)}</td><td>${fFiat(d.fiatAmount,d.fiatCurrency)}</td><td>${sbadge(d.status)}</td><td class="mono txs">${esc(d.memo)}</td><td>${fDT(d.createdAt)}</td></tr>`).join(''):'<tr><td colspan="6" class="tc t2" style="padding:20px">No deposits yet</td></tr>';
+  let stepContent='';
+  if(S.dep.step===1){
+    stepContent=`
+      ${depSteps(1)}
+      <div class="fg"><label class="flabel">Amount</label>
+        <div class="igrp"><input class="finput" type="number" id="dep-amount" placeholder="${S.dep.isBtc?'0.001':'100'}" value="${esc(S.dep.amount)}" min="0" step="any">
+        <button type="button" class="btn btn-ghost" data-action="toggleDepCur">${S.dep.isBtc?'BTC':'USD'}</button></div>
+        <div class="fhint">${S.dep.isBtc?'Enter BTC amount to deposit':'Enter USD amount (converted at $'+CFG.btcRate.toLocaleString()+'/BTC)'}</div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg mt12" data-action="getQuote">Get Quote &#8594;</button>`
+  } else if(S.dep.step===2&&S.dep.quote){
+    const q=S.dep.quote;
+    stepContent=`
+      ${depSteps(2)}
+      <div class="qbox mb16">
+        <div class="qrow"><span>BTC Amount</span><span class="mono bold">${fBTC(q.btcAmount)}</span></div>
+        <div class="qrow"><span>Rate</span><span>$${CFG.btcRate.toLocaleString()} / BTC</span></div>
+        <div class="qrow"><span>Network Fee (0.5%)</span><span class="mono">${fBTC(q.fee)}</span></div>
+        <div class="qrow"><span>Fiat Equivalent</span><span>${fFiat(q.fiatAmount,'USD')}</span></div>
+        <div class="qrow"><span>You Receive (net)</span><span class="mono tok">${fBTC(q.netBtc)}</span></div>
+      </div>
+      <div class="qtimer-wrap"><span>Quote expires in:</span><div class="qtimer" id="qtimer">${fSecs(secsLeft(q.expiresAt))}</div><button id="new-quote-btn" class="btn btn-ghost btn-sm hide" data-action="newQuote">New Quote</button></div>
+      <div class="flex gap8 mt16">
+        <button class="btn btn-ghost" data-action="newQuote">&#8592; New Quote</button>
+        <button class="btn btn-primary" style="flex:1" data-action="depositProceed">Proceed to Transfer &#8594;</button>
+      </div>`
+  } else if(S.dep.step===3&&S.dep.depId){
+    const dep=getDepById(S.dep.depId);
+    if(dep){
+      stepContent=`
+        ${depSteps(3)}
+        <div class="alert alert-info mb16">&#128274; Your deposit has been reserved. Send exactly the amount shown.</div>
+        <div class="btcbox mb12">
+          <div class="blbl">Send Bitcoin To This Address</div>
+          <div class="baddr" id="btcaddr">${esc(dep.btcAddress)}</div>
+          <button class="copybtn" data-action="copyText" data-text="${esc(dep.btcAddress)}">Copy</button>
+        </div>
+        <div class="btcbox mb12" style="background:#1a0000;border:1px solid #DC2626">
+          <div class="blbl" style="color:#ff8080">REQUIRED: Memo / Reference</div>
+          <div class="baddr" style="color:#ffaaaa;font-size:16px;font-weight:700">${esc(user.referenceCode)}</div>
+        </div>
+        <div class="memo-req">&#9888; <strong>REQUIRED:</strong> You MUST include your reference code <strong>${esc(user.referenceCode)}</strong> as the memo, note, or description when sending. Transfers without this reference cannot be matched to your account and will be delayed or returned.</div>
+        <div class="qbox mb16">
+          <div class="qrow"><span>Amount</span><span class="mono">${fBTC(dep.btcAmount)}</span></div>
+          <div class="qrow"><span>Net to Your Account</span><span class="mono tok">${fBTC(dep.netBtc)}</span></div>
+          <div class="qrow"><span>Status</span><span>${sbadge(dep.status)}</span></div>
+        </div>
+        <button class="btn btn-success btn-full btn-lg" data-action="markSent">I Have Sent the Bitcoin</button>`
+    }
+  }
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Deposits</h1><p class="psub">Deposit Bitcoin to your ApexTrust account</p></div>
+  <div class="pc">
+    <div class="tabs">
+      <div class="tab ${tab==='new'?'active':''}" data-action="depTab" data-tab="new">New Deposit</div>
+      <div class="tab ${tab==='history'?'active':''}" data-action="depTab" data-tab="history">History (${deps.length})</div>
+    </div>
+    ${tab==='new'?`
+    <div class="g2">
+      <div class="card"><div class="ch"><span class="chtitle">Bitcoin Deposit</span></div><div class="cb">${stepContent}</div></div>
+      <div>
+        <div class="card mb16"><div class="cb"><div class="stat-lbl">Current BTC Rate</div><div style="font-size:22px;font-weight:800;margin-top:4px">$${CFG.btcRate.toLocaleString()}</div><div class="stat-sub">USD per Bitcoin</div></div></div>
+        <div class="card"><div class="cb">
+          <div class="stat-lbl mb8">How it works</div>
+          <div style="font-size:13px;color:var(---text2);line-height:1.7">1. Enter amount &amp; get a 15-minute rate-locked quote<br>2. Send BTC to the provided address<br>3. Include your reference code in the memo<br>4. Balance credited after confirmation</div>
+        </div></div>
+      </div>
+    </div>`:`
+    <div class="card"><div class="tw"><table><thead><tr><th>ID</th><th>BTC Amount</th><th>Fiat Value</th><th>Status</th><th>Memo</th><th>Date</th></tr></thead><tbody>${histRows}</tbody></table></div></div>`}
+  </div>`)
+}
+
+// ==================== KYC ====================
+function renderKYC(){
+  const user=CU;
+  const kyc=getUserKYC(user.id);
+  const status=user.kycStatus||'none';
+  if(status==='approved'){return shell(user,`
+    <div class="ph"><h1 class="ptitle">KYC Verification</h1></div>
+    <div class="pc">
+      <div class="kyc-sc kyc-app"><div style="font-size:28px;margin-bottom:8px">&#9989;</div><h3 style="font-size:18px;font-weight:700;color:#065F46">KYC Approved</h3><p style="color:#065F46;margin-top:4px;font-size:14px">Your identity has been verified. You have full access to all platform features.</p></div>
+      ${kyc?`<div class="card"><div class="ch"><span class="chtitle">Verified Details</span></div><div class="cb">
+        <div class="kpi-row"><span>Full Name</span><span class="kpi-val">${esc(kyc.firstName+' '+kyc.lastName)}</span></div>
+        <div class="kpi-row"><span>Date of Birth</span><span class="kpi-val">${esc(kyc.dob)}</span></div>
+        <div class="kpi-row"><span>Nationality</span><span class="kpi-val">${esc(kyc.nationality)}</span></div>
+        <div class="kpi-row"><span>ID Type</span><span class="kpi-val">${esc(kyc.idType)}</span></div>
+        <div class="kpi-row"><span>Reviewed</span><span class="kpi-val">${kyc.reviewedAt?fDate(kyc.reviewedAt):'-'}</span></div>
+      </div></div>`:''}
+    </div>`)}
+  if(status==='submitted'){return shell(user,`
+    <div class="ph"><h1 class="ptitle">KYC Verification</h1></div>
+    <div class="pc">
+      <div class="kyc-sc kyc-sub"><div style="font-size:28px;margin-bottom:8px">&#128270;</div><h3 style="font-size:18px;font-weight:700;color:#1E40AF">Under Review</h3><p style="color:#1E40AF;margin-top:4px;font-size:14px">Your documents are being reviewed by our compliance team. You'll be notified within 1-2 business days.</p></div>
+      <div class="card"><div class="cb"><div class="kpi-row"><span>Submitted</span><span class="kpi-val">${kyc?fDT(kyc.submittedAt):'-'}</span></div><div class="kpi-row"><span>Status</span><span>${sbadge('submitted')}</span></div></div></div>
+    </div>`)}
+  if(status==='rejected'){return shell(user,`
+    <div class="ph"><h1 class="ptitle">KYC Verification</h1></div>
+    <div class="pc">
+      <div class="kyc-sc kyc-rej"><div style="font-size:28px;margin-bottom:8px">&#10060;</div><h3 style="font-size:18px;font-weight:700;color:#991B1B">Verification Rejected</h3><p style="color:#991B1B;margin-top:4px;font-size:14px">${kyc&&kyc.rejectionReason?'Reason: '+esc(kyc.rejectionReason):'Please resubmit with updated documents.'}</p></div>
+      <button class="btn btn-primary mt16" data-action="kycResubmit">Resubmit Verification</button>
+    </div>`)}
+  const step=S.kyc.step;
+  let formHtml='';
+  if(step===1){formHtml=`
+    <div class="fg"><label class="flabel">First Name</label><input class="finput" name="firstName" value="${esc(S.kyc.data.firstName||'')}" required></div>
+    <div class="fg"><label class="flabel">Last Name</label><input class="finput" name="lastName" value="${esc(S.kyc.data.lastName||'')}" required></div>
+    <div class="fg"><label class="flabel">Date of Birth</label><input class="finput" type="date" name="dob" value="${esc(S.kyc.data.dob||'')}" required></div>
+    <div class="fg"><label class="flabel">Nationality</label><input class="finput" name="nationality" value="${esc(S.kyc.data.nationality||'')}" placeholder="e.g. US, UK, MX" required></div>`}
+  if(step===2){formHtml=`
+    <div class="fg"><label class="flabel">ID Type</label><select class="finput fselect" name="idType"><option value="">Select...</option><option value="passport"${S.kyc.data.idType==='passport'?' selected':''}>Passport</option><option value="drivers_license"${S.kyc.data.idType==='drivers_license'?' selected':''}>Driver's License</option><option value="national_id"${S.kyc.data.idType==='national_id'?' selected':''}>National ID</option></select></div>
+    <div class="fg"><label class="flabel">ID Number</label><input class="finput" name="idNumber" value="${esc(S.kyc.data.idNumber||'')}" required></div>`}
+  if(step===3){formHtml=`
+    <div class="fg"><label class="flabel">Street Address</label><input class="finput" name="address" value="${esc(S.kyc.data.address||'')}" required></div>
+    <div class="g2"><div class="fg"><label class="flabel">City</label><input class="finput" name="city" value="${esc(S.kyc.data.city||'')}" required></div><div class="fg"><label class="flabel">State / Region</label><input class="finput" name="state" value="${esc(S.kyc.data.state||'')}"></div></div>
+    <div class="g2"><div class="fg"><label class="flabel">Zip / Postal Code</label><input class="finput" name="zip" value="${esc(S.kyc.data.zip||'')}"></div><div class="fg"><label class="flabel">Country</label><input class="finput" name="country" value="${esc(S.kyc.data.country||'')}" required></div></div>`}
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">KYC Verification</h1><p class="psub">Complete identity verification to unlock all features</p></div>
+  <div class="pc">
+    <div class="g2">
+      <div>
+        ${kycSteps(step)}
+        <div class="card"><div class="ch"><span class="chtitle">Step ${step} of 3: ${['','Personal Information','Identity Document','Residential Address'][step]}</span></div>
+        <div class="cb">
+          <form id="kyc-form-${step}" autocomplete="off">
+            ${formHtml}
+            <div class="flex gap8 mt12">
+              ${step>1?'<button type="button" class="btn btn-ghost" data-action="kycPrev">&#8592; Back</button>':''}
+              <button type="submit" class="btn btn-primary" style="flex:1">${step<3?'Continue &#8594;':'Submit Verification'}</button>
+            </div>
+          </form>
+        </div></div>
+      </div>
+      <div class="card"><div class="cb">
+        <div class="stat-lbl mb12">Verification Benefits</div>
+        <div class="elig-met mb8"><span>&#10003;</span> Higher deposit limits</div>
+        <div class="elig-met mb8"><span>&#10003;</span> Virtual card eligibility</div>
+        <div class="elig-met mb8"><span>&#10003;</span> Priority support</div>
+        <div class="sep"></div>
+        <div class="stat-lbl mb8">Your Data</div>
+        <div style="font-size:13px;color:var(---text2)">Your identity documents are encrypted and handled in accordance with our AML/KYC policy. Data is retained for regulatory compliance.</div>
+      </div></div>
+    </div>
+  </div>`)
+}
+
+// ==================== CARDS ====================
+function renderCards(){
+  const user=CU;
+  const elig=isEligible(user);
+  const card=getUserCard(user.id);
+  const portUSD=getPortUSD(user.id);
+  const eligHtml=`
+    <div class="card mb16"><div class="ch"><span class="chtitle">Card Eligibility</span></div><div class="cb">
+      <div class="elig-item ${elig.reasons.region?'elig-met':'elig-unmet'}"><span>${elig.reasons.region?'&#10003;':'&#10007;'}</span><span>US Region (${elig.reasons.region?user.region:'Required: US'})</span></div>
+      <div class="elig-item ${elig.reasons.kyc?'elig-met':'elig-unmet'}"><span>${elig.reasons.kyc?'&#10003;':'&#10007;'}</span><span>KYC Approved (${elig.reasons.kyc?'Verified':'Complete verification to unlock'})</span></div>
+      <div class="elig-item ${elig.reasons.bal?'elig-met':'elig-unmet'}"><span>${elig.reasons.bal?'&#10003;':'&#10007;'}</span><span>Min. $1,000 Portfolio (${fFiat(portUSD,'USD')} current)</span></div>
+    </div></div>`;
+  if(!elig.ok){return shell(user,`
+    <div class="ph"><h1 class="ptitle">Virtual Card</h1><p class="psub">ApexTrust Visa Virtual Card</p></div>
+    <div class="pc">
+      ${eligHtml}
+      <div class="alert alert-info">Complete the requirements above to unlock your ApexTrust Virtual Debit Card.</div>
+    </div>`)}
+  if(!card){return shell(user,`
+    <div class="ph"><h1 class="ptitle">Virtual Card</h1><p class="psub">ApexTrust Visa Virtual Card</p></div>
+    <div class="pc">
+      ${eligHtml}
+      <div class="card"><div class="cb tc">
+        <div style="font-size:48px;margin-bottom:16px">&#128179;</div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">You're Eligible!</h3>
+        <p class="t2 mb20" style="font-size:14px">Request your ApexTrust Virtual Debit Card - spend your Bitcoin balance anywhere Visa is accepted.</p>
+        <button class="btn btn-primary btn-lg" data-action="requestCard">Request Virtual Card</button>
+      </div></div>
+    </div>`)}
+  const frozen=card.status==='frozen';
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Virtual Card</h1><p class="psub">Manage your ApexTrust Virtual Debit Card</p></div>
+  <div class="pc">
+    <div class="g2">
+      <div>
+        <div class="vc ${frozen?'frozen':''}" style="margin-bottom:20px">
+          <div class="vc-logo">APEXTRUST BANKING</div>
+          <div class="vc-num">${esc(card.number)}</div>
+          <div class="vc-holder">${esc(card.holder)}</div>
+          <div class="vc-exp">Valid thru ${esc(card.expiry)}</div>
+          <div class="vc-net">VISA</div>
+        </div>
+        <div class="flex gap8">
+          ${frozen?`<button class="btn btn-success" data-action="unfreezeCard" data-id="${esc(card.id)}">&#9654; Unfreeze Card</button>`:`<button class="btn btn-secondary" data-action="freezeCard" data-id="${esc(card.id)}">&#10052; Freeze Card</button>`}
+        </div>
+      </div>
+      <div>
+        <div class="card mb16"><div class="ch"><span class="chtitle">Card Details</span></div><div class="cb">
+          <div class="kpi-row"><span>Card Number</span><span class="mono">${esc(card.number)}</span></div>
+          <div class="kpi-row"><span>Expiry</span><span class="mono">${esc(card.expiry)}</span></div>
+          <div class="kpi-row"><span>CVV</span><span class="mono">&#183;&#183;&#183;</span></div>
+          <div class="kpi-row"><span>Status</span><span>${sbadge(card.status)}</span></div>
+          <div class="kpi-row"><span>Spend Limit</span><span>${fFiat(card.spendLimit,'USD')}</span></div>
+          <div class="kpi-row"><span>Issued</span><span>${fDate(card.createdAt)}</span></div>
+        </div></div>
+        ${frozen?'<div class="alert alert-warn">Your card is frozen. No transactions can be made until you unfreeze it.</div>':''}
+      </div>
+    </div>
+  </div>`)
+}
+
+// ==================== COMPLIANCE (CLIENT) ====================
+function renderCompliance(){
+  const user=CU;
+  const comp=getCompliance();
+  const incidents=getIncidents();
+  const openInc=incidents.filter(i=>i.status!=='resolved');
+  const ratings=getRatings();
+  const avgs=ratingAvgs();
+  const score=comp.score||87;
+  const r=38;const circ=2*Math.PI*r;const fill=circ*(score/100);
+  const scoreHtml=`<svg width="88" height="88" viewBox="0 0 88 88"><circle cx="44" cy="44" r="${r}" fill="none" stroke="var(---border)" stroke-width="8"/><circle cx="44" cy="44" r="${r}" fill="none" stroke="var(---gold)" stroke-width="8" stroke-dasharray="${fill} ${circ}" stroke-linecap="round"/></svg><div class="score-text"><div class="score-num">${score}</div><div class="score-lbl">/ 100</div></div>`;
+  const incHtml=openInc.length?openInc.map(i=>`<div class="inc-card inc-${i.sev}"><div class="fbet mb8"><div><span style="font-weight:600;font-size:14px">${esc(i.title)}</span></div><div>${sbadge(i.sev)} ${sbadge(i.status)}</div></div><div style="font-size:13px;color:var(---text2)">${esc(i.impact)}</div><div class="tsm t2 mt4">Started: ${fDT(i.startedAt)}</div></div>`).join(''):'<div class="t2 tsm">No open incidents &#10003;</div>';
+  const ratHtml=ratings.slice(-3).reverse().map(r=>`<div style="padding:10px 0;border-bottom:1px solid var(---border)"><div class="fbet"><div class="stars">${starsHtml((r.reliability+r.support+r.transparency)/3)}</div><div class="txs t2">${ago(r.ts)}</div></div><div style="font-size:13px;font-style:italic;margin-top:4px">"${esc(r.assertion)}"</div></div>`).join('');
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Compliance Center</h1><p class="psub">Platform posture, incidents &amp; transparency</p></div>
+  <div class="pc">
+    <div class="g2 mb20">
+      <div class="card">
+        <div class="ch"><span class="chtitle">Compliance Score</span></div>
+        <div class="cb fcen gap12">
+          <div class="score-ring">${scoreHtml}</div>
+          <div>
+            <div class="kpi-row"><span>AML Status</span><span class="kpi-val">${sbadge(comp.amlStatus)}</span></div>
+            <div class="kpi-row"><span>KYC Completion</span><span class="kpi-val">${comp.kycRate}%</span></div>
+            <div class="kpi-row"><span>Last Audit</span><span class="kpi-val tsm">${fDate(comp.lastAudit)}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="chtitle">SLA &amp; Performance</span></div>
+        <div class="cb">
+          <div class="kpi-row"><span>Uptime (30d)</span><span class="kpi-val tok">${comp.slaUptime}%</span></div>
+          <div class="kpi-row"><span>Support Response</span><span class="kpi-val">${comp.slaResponse}</span></div>
+          <div class="kpi-row"><span>Open Incidents</span><span class="kpi-val ${openInc.length?'terr':'tok'}">${openInc.length}</span></div>
+          <div class="kpi-row"><span>Next Audit</span><span class="kpi-val tsm">${fDate(comp.nextAudit)}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="g2 mb20">
+      <div class="card">
+        <div class="ch"><span class="chtitle">Compliance Assertions</span></div>
+        <div class="cb">${comp.assertions.map(a=>`<div class="arow">${sbadge(a.status)}<span>${esc(a.label)}</span></div>`).join('')}</div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="chtitle">Active Incidents</span></div>
+        <div class="cb">${incHtml}</div>
+      </div>
+    </div>
+    <div class="g2 mb20">
+      <div class="card">
+        <div class="ch"><span class="chtitle">Service Ratings</span><span class="tsm t2">${avgs.count} ratings &mdash; avg ${((avgs.reliability+avgs.support+avgs.transparency)/3||0).toFixed(1)}/5</span></div>
+        <div class="cb">
+          <div class="kpi-row"><span>Reliability</span><span class="kpi-val fcen gap6"><div class="stars">${starsHtml(avgs.reliability)}</div> ${avgs.reliability.toFixed(1)}</span></div>
+          <div class="kpi-row"><span>Support</span><span class="kpi-val fcen gap6"><div class="stars">${starsHtml(avgs.support)}</div> ${avgs.support.toFixed(1)}</span></div>
+          <div class="kpi-row"><span>Transparency</span><span class="kpi-val fcen gap6"><div class="stars">${starsHtml(avgs.transparency)}</div> ${avgs.transparency.toFixed(1)}</span></div>
+          <div class="sep"></div>
+          ${ratHtml||'<div class="t2 tsm">No ratings yet</div>'}
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="chtitle">Leave a Rating</span></div>
+        <div class="cb">
+          <form id="rating-form">
+            <div class="fg"><div class="flabel">Reliability</div><div class="stars" id="stars-reliability">${starsHtml(0,true,'reliability')}</div><input type="hidden" name="reliability" id="inp-reliability" value="0" required></div>
+            <div class="fg"><div class="flabel">Support</div><div class="stars" id="stars-support">${starsHtml(0,true,'support')}</div><input type="hidden" name="support" id="inp-support" value="0" required></div>
+            <div class="fg"><div class="flabel">Transparency</div><div class="stars" id="stars-transparency">${starsHtml(0,true,'transparency')}</div><input type="hidden" name="transparency" id="inp-transparency" value="0" required></div>
+            <div class="fg"><label class="flabel">Assertion</label><input class="finput" name="assertion" placeholder="Platform has been reliable..." required></div>
+            <div class="fg"><label class="flabel">Comment (optional)</label><textarea class="finput" name="comment" rows="2" placeholder="Additional feedback..."></textarea></div>
+            <button type="submit" class="btn btn-primary btn-full">Submit Rating</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="chtitle">Export</span></div>
+      <div class="cb flex gap8">
+        <button class="btn btn-secondary" data-action="exportTransparency">&#8675; Transparency Pack (JSON)</button>
+        <button class="btn btn-secondary" data-action="exportCompliance">&#8675; Compliance Report (JSON)</button>
+      </div>
+    </div>
+  </div>`)
+}
+
+// ==================== SETTINGS ====================
+function renderSettings(){
+  const user=CU;
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Settings</h1><p class="psub">Manage your account preferences</p></div>
+  <div class="pc">
+    <div class="g2">
+      <div>
+        <div class="card mb16">
+          <div class="ch"><span class="chtitle">Profile</span></div>
+          <div class="cb">
+            <div class="kpi-row"><span>Full Name</span><span class="kpi-val">${esc(user.name)}</span></div>
+            <div class="kpi-row"><span>Email</span><span class="kpi-val mono">${esc(user.email)}</span></div>
+            <div class="kpi-row"><span>Region</span><span class="kpi-val">${REGIONS[user.region].flag} ${REGIONS[user.region].name}</span></div>
+            <div class="kpi-row"><span>Rail</span><span class="kpi-val">${sbadge(user.region==='US'?'ACH':REGIONS[user.region].rail)}</span></div>
+            <div class="kpi-row"><span>Reference Code</span><span class="kpi-val mono gold">${esc(user.referenceCode)}</span></div>
+            <div class="kpi-row"><span>KYC Status</span><span>${sbadge(user.kycStatus||'none')}</span></div>
+            <div class="kpi-row"><span>Member Since</span><span class="kpi-val">${fDate(user.createdAt)}</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="chtitle">Change Password</span></div>
+          <div class="cb">
+            <form id="settings-password-form">
+              <div class="fg"><label class="flabel">Current Password</label><input class="finput" type="password" name="current" required></div>
+              <div class="fg"><label class="flabel">New Password</label><input class="finput" type="password" name="new" required minlength="8"></div>
+              <div class="fg"><label class="flabel">Confirm New Password</label><input class="finput" type="password" name="confirm" required></div>
+              <div id="pw-err" class="ferr"></div>
+              <button type="submit" class="btn btn-primary">Update Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="chtitle">Notifications</span></div>
+        <div class="cb">
+          ${[['Deposit confirmed','Notify when deposit is credited'],['KYC status update','Updates on verification progress'],['Security alerts','Suspicious login or access'],['Monthly statement','Monthly account summary email']].map(([t,d])=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(---border)">
+              <div><div style="font-size:14px;font-weight:500">${t}</div><div class="tsm t2">${d}</div></div>
+              <input type="checkbox" checked style="width:16px;height:16px;cursor:pointer">
+            </div>`).join('')}
+          <div style="margin-top:14px;font-size:13px;color:var(---text2)">Notifications are sent to ${esc(user.email)}</div>
+        </div>
+      </div>
+    </div>
+  </div>`)
+}
+
+// ==================== ADMIN DASHBOARD ====================
+function renderAdmin(){
+  const user=CU;
+  const users=getUsers().filter(u=>u.role!=='admin');
+  const deps=getDeposits();
+  const cards=getCards();
+  const kycs=getKYCs();
+  const incidents=getIncidents();
+  const totalBTC=deps.filter(d=>d.status==='confirmed').reduce((s,d)=>s+d.netBtc,0);
+  const pendingKyc=users.filter(u=>u.kycStatus==='submitted').length;
+  const openInc=incidents.filter(i=>i.status!=='resolved').length;
+  const regDist=Object.entries(users.reduce((m,u)=>{m[u.region]=(m[u.region]||0)+1;return m},{})).sort((a,b)=>b[1]-a[1]);
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Admin Dashboard</h1><p class="psub">Platform-wide overview</p></div>
+  <div class="pc">
+    <div class="g4 mb20">
+      <div class="admin-metric card"><div class="cb"><div style="font-size:26px;margin-bottom:6px">&#128101;</div><div style="font-size:26px;font-weight:800">${users.length}</div><div class="stat-sub">Total Clients</div></div></div>
+      <div class="admin-metric card"><div class="cb"><div style="font-size:26px;margin-bottom:6px">&#8383;</div><div style="font-size:26px;font-weight:800">${deps.length}</div><div class="stat-sub">Total Deposits</div></div></div>
+      <div class="admin-metric card"><div class="cb"><div style="font-size:26px;margin-bottom:6px">&#128179;</div><div style="font-size:26px;font-weight:800">${cards.filter(c=>c.status!=='cancelled').length}</div><div class="stat-sub">Active Cards</div></div></div>
+      <div class="admin-metric card"><div class="cb"><div style="font-size:26px;margin-bottom:6px">&#128203;</div><div style="font-size:26px;font-weight:800">${fBTC(totalBTC)}</div><div class="stat-sub">BTC Volume</div></div></div>
+    </div>
+    <div class="g2 mb20">
+      <div class="card"><div class="cb">
+        <div class="g2">
+          <div class="stat-card"><div class="stat-lbl">Pending KYC</div><div class="stat-val ${pendingKyc>0?'terr':''}">${pendingKyc}</div></div>
+          <div class="stat-card"><div class="stat-lbl">Open Incidents</div><div class="stat-val ${openInc>0?'terr':''}">${openInc}</div></div>
+          <div class="stat-card"><div class="stat-lbl">Pending Deposits</div><div class="stat-val">${deps.filter(d=>d.status==='pending').length}</div></div>
+          <div class="stat-card"><div class="stat-lbl">Compliance Score</div><div class="stat-val">${getCompliance().score}</div></div>
+        </div>
+      </div></div>
+      <div class="card"><div class="ch"><span class="chtitle">Region Distribution</span></div><div class="cb">
+        <table><thead><tr><th>Region</th><th>Rail</th><th>Clients</th></tr></thead><tbody>
+        ${regDist.map(([r,n])=>`<tr><td>${REGIONS[r]?REGIONS[r].flag+' '+REGIONS[r].name:r}</td><td>${REGIONS[r]?REGIONS[r].rail:''}</td><td><strong>${n}</strong></td></tr>`).join('')}
+        </tbody></table>
+      </div></div>
+    </div>
+    <div class="card"><div class="ch"><span class="chtitle">Recent Deposits</span><a href="#/admin/deposits" style="font-size:13px">View all</a></div>
+    <div class="tw"><table><thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>
+    ${deps.slice(-5).reverse().map(d=>{const u=getUserById(d.userId);return`<tr><td class="mono txs">${d.id.slice(-8)}</td><td>${u?esc(u.name):'-'}</td><td class="mono">${fBTC(d.btcAmount)}</td><td>${sbadge(d.status)}</td><td>${fDT(d.createdAt)}</td></tr>`}).join('')}
+    </tbody></table></div></div>
+  </div>`)
+}
+
+// ==================== ADMIN CLIENTS ====================
+function renderAdminClients(){
+  const user=CU;
+  const users=getUsers().filter(u=>u.role!=='admin');
+  const rows=users.map(u=>{
+    const card=getUserCard(u.id);
+    return`<tr>
+      <td><div class="fcen gap8"><div style="width:30px;height:30px;border-radius:50%;background:var(---navy);color:var(---gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${(u.name||'?')[0].toUpperCase()}</div><div><div style="font-weight:500;font-size:13px">${esc(u.name)}</div><div class="txs t2">${esc(u.email)}</div></div></div></td>
+      <td>${REGIONS[u.region]?REGIONS[u.region].flag+' '+u.region:u.region} <span class="badge badge-neutral">${REGIONS[u.region]?REGIONS[u.region].rail:''}</span></td>
+      <td>${sbadge(u.kycStatus||'none')}</td>
+      <td>${sbadge(card?card.status:'none')}</td>
+      <td class="mono tsm">${esc(u.referenceCode)}</td>
+      <td class="t2 tsm">${fDate(u.createdAt)}</td>
+    </tr>`}).join('');
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Clients</h1><p class="psub">${users.length} registered clients</p></div>
+  <div class="pc">
+    <div class="card"><div class="tw"><table><thead><tr><th>Client</th><th>Region</th><th>KYC</th><th>Card</th><th>Ref Code</th><th>Joined</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="tc t2" style="padding:20px">No clients yet</td></tr>'}</tbody></table></div></div>
+  </div>`)
+}
+
+// ==================== ADMIN DEPOSITS ====================
+function renderAdminDeposits(){
+  const user=CU;
+  const deps=getDeposits().slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const rows=deps.map(d=>{
+    const u=getUserById(d.userId);
+    const canConfirm=d.status==='pending';
+    return`<tr>
+      <td class="mono txs">${d.id.slice(-8)}</td>
+      <td>${u?esc(u.name):'-'}<div class="txs t2">${u?esc(u.referenceCode):''}</div></td>
+      <td class="mono">${fBTC(d.btcAmount)}</td>
+      <td>${fFiat(d.fiatAmount,d.fiatCurrency)}</td>
+      <td>${sbadge(d.status)}</td>
+      <td class="tsm t2">${fDT(d.createdAt)}</td>
+      <td>${canConfirm?`<button class="btn btn-success btn-sm" data-action="confirmDeposit" data-id="${esc(d.id)}">Confirm</button>`:''}</td>
+    </tr>`}).join('');
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Deposits</h1><p class="psub">All platform deposits</p></div>
+  <div class="pc">
+    <div class="card"><div class="tw"><table><thead><tr><th>ID</th><th>Client</th><th>BTC</th><th>Fiat</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="tc t2" style="padding:20px">No deposits</td></tr>'}</tbody></table></div></div>
+  </div>`)
+}
+
+// ==================== ADMIN CARDS ====================
+function renderAdminCards(){
+  const user=CU;
+  const cards=getCards();
+  const rows=cards.map(c=>{
+    const u=getUserById(c.userId);
+    return`<tr>
+      <td class="mono">${esc(c.number)}</td>
+      <td>${u?esc(u.name):'-'}<div class="txs t2">${u?esc(u.email):''}</div></td>
+      <td>${sbadge(c.status)}</td>
+      <td>${fFiat(c.spendLimit,'USD')}</td>
+      <td class="tsm t2">${fDate(c.createdAt)}</td>
+      <td>
+        ${c.status==='active'?`<button class="btn btn-ghost btn-sm" data-action="adminFreezeCard" data-id="${esc(c.id)}">Freeze</button>`:''}
+        ${c.status==='frozen'?`<button class="btn btn-success btn-sm" data-action="adminActivateCard" data-id="${esc(c.id)}">Activate</button>`:''}
+      </td>
+    </tr>`}).join('');
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Cards</h1><p class="psub">All issued virtual cards</p></div>
+  <div class="pc">
+    <div class="card"><div class="tw"><table><thead><tr><th>Card Number</th><th>Holder</th><th>Status</th><th>Limit</th><th>Issued</th><th>Action</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="tc t2" style="padding:20px">No cards issued</td></tr>'}</tbody></table></div></div>
+  </div>`)
+}
+
+// ==================== ADMIN KYC ====================
+function renderAdminKYC(){
+  const user=CU;
+  const kycs=getKYCs().slice().sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+  const rows=kycs.map(k=>{
+    const u=getUserById(k.userId);
+    return`<tr>
+      <td>${u?esc(u.name):'-'}<div class="txs t2">${u?esc(u.email):''}</div></td>
+      <td class="tsm">${fDT(k.submittedAt)}</td>
+      <td>${sbadge(k.status)}</td>
+      <td>${k.status==='submitted'?`<button class="btn btn-success btn-sm" data-action="approveKYC" data-id="${esc(k.userId)}" style="margin-right:4px">Approve</button><button class="btn btn-danger btn-sm" data-action="rejectKYC" data-id="${esc(k.userId)}">Reject</button>`:''}</td>
+    </tr>`}).join('');
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">KYC Review</h1><p class="psub">Pending and past identity verifications</p></div>
+  <div class="pc">
+    <div class="card"><div class="tw"><table><thead><tr><th>Client</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="tc t2" style="padding:20px">No KYC submissions</td></tr>'}</tbody></table></div></div>
+  </div>`)
+}
+
+// ==================== ADMIN COMPLIANCE ====================
+function renderAdminCompliance(){
+  const user=CU;
+  const comp=getCompliance();
+  const incidents=getIncidents().slice().sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const incRows=incidents.map(i=>`
+    <tr>
+      <td><strong>${esc(i.title)}</strong></td>
+      <td>${sbadge(i.sev)}</td>
+      <td>${sbadge(i.status)}</td>
+      <td class="tsm t2">${fDT(i.startedAt)}</td>
+      <td>${esc(i.impact||'')}</td>
+      <td>${i.status!=='resolved'?`<button class="btn btn-sm btn-success" data-action="resolveIncident" data-id="${esc(i.id)}">Resolve</button>`:''}</td>
+    </tr>`).join('');
+  const assertRows=comp.assertions.map((a,idx)=>`
+    <div class="arow">
+      <span style="flex:1">${esc(a.label)}</span>
+      <select class="finput fselect" style="width:140px" data-action="updateAssertion" data-idx="${idx}">
+        <option value="compliant"${a.status==='compliant'?' selected':''}>Compliant</option>
+        <option value="in_review"${a.status==='in_review'?' selected':''}>In Review</option>
+        <option value="non_compliant"${a.status==='non_compliant'?' selected':''}>Non-Compliant</option>
+      </select>
+    </div>`).join('');
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Compliance &amp; Governance</h1><p class="psub">Platform posture and incident management</p></div>
+  <div class="pc">
+    <div class="g2 mb20">
+      <div class="card"><div class="ch"><span class="chtitle">Posture Settings</span></div><div class="cb">
+        <div class="fg"><label class="flabel">Compliance Score (0-100)</label><input class="finput" type="number" id="comp-score" value="${comp.score}" min="0" max="100"></div>
+        <div class="fg"><label class="flabel">AML Status</label>
+          <select class="finput fselect" id="comp-aml">
+            <option value="compliant"${comp.amlStatus==='compliant'?' selected':''}>Compliant</option>
+            <option value="review"${comp.amlStatus==='review'?' selected':''}>Under Review</option>
+            <option value="alert"${comp.amlStatus==='alert'?' selected':''}>Alert</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">KYC Completion Rate (%)</label><input class="finput" type="number" id="comp-kyc" value="${comp.kycRate}" min="0" max="100"></div>
+        <div class="fg"><label class="flabel">Uptime (%)</label><input class="finput" type="text" id="comp-uptime" value="${comp.slaUptime}"></div>
+        <button class="btn btn-primary" data-action="saveCompliance">Save Posture</button>
+      </div></div>
+      <div class="card"><div class="ch"><span class="chtitle">Compliance Assertions</span></div><div class="cb">${assertRows}</div></div>
+    </div>
+    <div class="card mb20">
+      <div class="ch"><span class="chtitle">Incidents</span><button class="btn btn-primary btn-sm" data-action="addIncident">+ Add Incident</button></div>
+      <div class="tw"><table><thead><tr><th>Title</th><th>Severity</th><th>Status</th><th>Started</th><th>Impact</th><th>Action</th></tr></thead><tbody>${incRows||'<tr><td colspan="6" class="tc t2" style="padding:20px">No incidents</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="card"><div class="ch"><span class="chtitle">Export</span></div>
+      <div class="cb"><button class="btn btn-secondary" data-action="exportCompliance">&#8675; Export Compliance Report (JSON)</button></div>
+    </div>
+  </div>`)
+}
+
+// ==================== ADMIN AUDIT ====================
+function renderAdminAudit(){
+  const user=CU;
+  const log=getAudit().slice().reverse();
+  const rows=log.map(e=>`
+    <div class="al-entry">
+      <div class="al-seq">#${e.seq}</div>
+      <div class="al-action">${esc(e.action)}</div>
+      <div class="al-meta">${esc(getUserById(e.userId)?getUserById(e.userId).name:e.userId)} &mdash; ${fDT(e.ts)}</div>
+      <div class="al-hash" title="${esc(e.hash)}">${e.hash}</div>
+    </div>`).join('');
+  return shell(user,`
+  <div class="ph"><h1 class="ptitle">Ops / Audit Log</h1><p class="psub">Append-only tamper-evident operation log</p></div>
+  <div class="pc">
+    <div class="card mb16">
+      <div class="ch"><span class="chtitle">Integrity Check</span></div>
+      <div class="cb">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary" data-action="verifyIntegrity">&#128274; Verify Hash Chain</button>
+          <button class="btn btn-secondary" data-action="exportAudit">&#8675; Export Audit Log (JSON)</button>
+          <div id="integrity-result"></div>
+        </div>
+        <div class="sep"></div>
+        <div style="font-size:13px;color:var(---text2)">Each entry is linked by a djb2 hash chain: <code>hash = djb2(seq|action|userId|entityId|ts|prevHash)</code>. Any modification to any field in any entry will break the chain.</div>
+      </div>
+    </div>
+    <div class="card"><div class="ch"><span class="chtitle">Log Entries (${log.length} total)</span></div>
+      <div class="cb" style="max-height:600px;overflow-y:auto">${rows||'<div class="t2 tc" style="padding:20px">No entries in audit log</div>'}</div>
+    </div>
+  </div>`)
+}
+
+// ==================== EVENT HANDLERS ====================
+document.addEventListener('click',function(e){
+  const el=e.target.closest('[data-action]');
+  if(!el)return;
+  e.preventDefault();
+  handleAction(el.dataset.action,el,e)
+});
+document.addEventListener('submit',function(e){
+  e.preventDefault();
+  handleSubmit(e.target,e)
+});
+document.addEventListener('change',function(e){
+  const el=e.target.closest('[data-action]');
+  if(!el)return;
+  handleAction(el.dataset.action,el,e)
+});
+
+function handleAction(action,el,e){
+  switch(action){
+    case 'signout': doSignout();break;
+    case 'selectRegion': doSelectRegion(el);break;
+    case 'toggleDepCur': S.dep.isBtc=!S.dep.isBtc;S.dep.amount='';route();break;
+    case 'depTab': S.dep.activeTab=el.dataset.tab;S.dep.step=1;route();break;
+    case 'getQuote': doGetQuote();break;
+    case 'depositProceed': doDepositProceed();break;
+    case 'newQuote': S.dep={step:1,amount:'',isBtc:false,quote:null,depId:null,activeTab:'new'};route();break;
+    case 'markSent': doMarkSent();break;
+    case 'kycPrev': S.kyc.step---;route();break;
+    case 'kycResubmit': S.kyc={step:1,data:{}};updateUser(CU.id,{kycStatus:'none'});route();break;
+    case 'requestCard': doRequestCard();break;
+    case 'freezeCard': doFreezeCard(el.dataset.id);break;
+    case 'unfreezeCard': doUnfreezeCard(el.dataset.id);break;
+    case 'exportTransparency': doExportTransparency();break;
+    case 'exportCompliance': doExportCompliance();break;
+    case 'exportAudit': doExportAudit();break;
+    case 'verifyIntegrity': doVerifyIntegrity();break;
+    case 'confirmDeposit': doConfirmDeposit(el.dataset.id);break;
+    case 'approveKYC': doApproveKYC(el.dataset.id);break;
+    case 'rejectKYC': doShowRejectModal(el.dataset.id);break;
+    case 'confirmRejectKYC': doConfirmReject();break;
+    case 'closeModal': closeModal();break;
+    case 'addIncident': doShowAddIncident();break;
+    case 'submitIncident': doSubmitIncident();break;
+    case 'resolveIncident': doResolveIncident(el.dataset.id);break;
+    case 'saveCompliance': doSaveCompliance();break;
+    case 'updateAssertion': doUpdateAssertion(el.dataset.idx,el.value);break;
+    case 'adminFreezeCard': updateCard(el.dataset.id,{status:'frozen'});appendAudit('card.frozen',CU.id,'card',el.dataset.id,{});toast('Card frozen','warn');route();break;
+    case 'adminActivateCard': updateCard(el.dataset.id,{status:'active'});appendAudit('card.activated',CU.id,'card',el.dataset.id,{});toast('Card activated','ok');route();break;
+    case 'rateStar': doRateStar(el.dataset.prefix,parseInt(el.dataset.val));break;
+    case 'copyText': doCopy(el.dataset.text||el.dataset.addr||'');break;
+  }
+}
+
+function handleSubmit(form,e){
+  const id=form.id;
+  if(id==='signin-form')doSignin(form);
+  else if(id==='signup-form')doSignup(form);
+  else if(id==='settings-password-form')doChangePw(form);
+  else if(id==='rating-form')doSubmitRating(form);
+  else if(id&&id.startsWith('kyc-form-'))doKycStep(form);
+}
+
+function doSignout(){clearSession();CU=null;navigate('/signin')}
+
+function doSelectRegion(el){
+  document.querySelectorAll('.ropt').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+  const rv=document.getElementById('region-val');
+  if(rv)rv.value=el.dataset.region
+}
+
+function doSignin(form){
+  const fd=new FormData(form);
+  const email=fd.get('email').trim().toLowerCase();
+  const pw=fd.get('password');
+  const u=getUserByEmail(email);
+  const errEl=document.getElementById('signin-err');
+  if(!u||u.password!==pw){if(errEl){errEl.textContent='Invalid email or password';errEl.style.display='block'}return}
+  CU=u;saveSession(u.id);
+  toast('Welcome back, '+u.name.split(' ')[0]+'!','ok');
+  navigate(u.role==='admin'?'/admin':'/dashboard')
+}
+
+function doSignup(form){
+  const fd=new FormData(form);
+  const name=fd.get('name').trim();
+  const email=fd.get('email').trim().toLowerCase();
+  const pw=fd.get('password');
+  const region=fd.get('region');
+  const errEl=document.getElementById('signup-err');
+  if(!name||!email||!pw||!region){if(errEl){errEl.textContent='Please fill in all fields including region';errEl.style.display='block'}return}
+  if(getUserByEmail(email)){if(errEl){errEl.textContent='An account with this email already exists';errEl.style.display='block'}return}
+  const u=createUser({name,email,password:pw,role:'client',region,kycStatus:'none',referenceCode:genRef('APT')});
+  createAccount(u.id,region);
+  appendAudit('user.signup',u.id,'user',u.id,{name,email,region});
+  CU=u;saveSession(u.id);
+  toast('Account created! Welcome, '+name.split(' ')[0],'ok');
+  navigate('/dashboard')
+}
+
+function doChangePw(form){
+  const fd=new FormData(form);
+  const cur=fd.get('current');const nw=fd.get('new');const conf=fd.get('confirm');
+  const errEl=document.getElementById('pw-err');
+  if(CU.password!==cur){if(errEl){errEl.textContent='Current password is incorrect';errEl.style.display='block'}return}
+  if(nw!==conf){if(errEl){errEl.textContent='New passwords do not match';errEl.style.display='block'}return}
+  if(nw.length<8){if(errEl){errEl.textContent='Password must be at least 8 characters';errEl.style.display='block'}return}
+  updateUser(CU.id,{password:nw});
+  appendAudit('user.passwordChange',CU.id,'user',CU.id,{});
+  toast('Password updated','ok');form.reset()
+}
+
+function doGetQuote(){
+  const amtEl=document.getElementById('dep-amount');
+  const raw=parseFloat(amtEl?amtEl.value:0);
+  if(!raw||raw<=0){toast('Enter a valid amount','warn');return}
+  const btcAmt=S.dep.isBtc?raw:raw/CFG.btcRate;
+  const fee=btcAmt*CFG.depositFee;
+  const netBtc=btcAmt-fee;
+  const fiatAmt=btcAmt*CFG.btcRate;
+  const expiresAt=new Date(Date.now()+CFG.quoteTTL*1000).toISOString();
+  S.dep.quote={btcAmount:btcAmt,fee,netBtc,fiatAmount:fiatAmt,fiatCurrency:'USD',expiresAt};
+  S.dep.step=2;
+  route()
+}
+
+function doDepositProceed(){
+  const q=S.dep.quote;
+  if(!q){toast('No active quote','warn');return}
+  if(secsLeft(q.expiresAt)<=0){toast('Quote expired. Get a new quote.','warn');S.dep.step=1;route();return}
+  const user=CU;
+  const accs=getUserAccounts(user.id);
+  const acc=accs[0];
+  if(!acc){toast('No account found','warn');return}
+  const dep=createDeposit({userId:user.id,accountId:acc.id,btcAmount:q.btcAmount,fiatAmount:q.fiatAmount,fiatCurrency:q.fiatCurrency,btcRate:CFG.btcRate,fee:q.fee,netBtc:q.netBtc,status:'pending',btcAddress:genBtcAddr(),memo:user.referenceCode,quoteExpiresAt:q.expiresAt});
+  appendAudit('deposit.created',user.id,'deposit',dep.id,{btcAmount:q.btcAmount,memo:user.referenceCode});
+  S.dep.depId=dep.id;S.dep.step=3;route()
+}
+
+function doMarkSent(){
+  if(S.dep.depId){
+    toast('Transfer noted. We will credit your account upon confirmation.','ok');
+    S.dep={step:1,amount:'',isBtc:false,quote:null,depId:null,activeTab:'history'};
+    route()
+  }
+}
+
+function doKycStep(form){
+  const fd=new FormData(form);
+  const data={};fd.forEach((v,k)=>data[k]=v);
+  S.kyc.data={...S.kyc.data,...data};
+  if(S.kyc.step<3){S.kyc.step++;route();return}
+  const user=CU;
+  createKYC({userId:user.id,...S.kyc.data,status:'submitted',submittedAt:new Date().toISOString(),reviewedAt:null,rejectionReason:null});
+  updateUser(user.id,{kycStatus:'submitted'});
+  appendAudit('kyc.submitted',user.id,'kyc',user.id,{});
+  S.kyc={step:1,data:{}};
+  toast('KYC submitted for review','ok');route()
+}
+
+function doRequestCard(){
+  const user=CU;
+  const elig=isEligible(user);
+  if(!elig.ok){toast('Card eligibility requirements not met','warn');return}
+  const accs=getUserAccounts(user.id);
+  const acc=accs[0];
+  const card=createCard(user,acc.id);
+  appendAudit('card.issued',user.id,'card',card.id,{number:card.number});
+  toast('Virtual card issued!','ok');route()
+}
+
+function doFreezeCard(id){updateCard(id,{status:'frozen'});appendAudit('card.frozen',CU.id,'card',id,{});toast('Card frozen','warn');route()}
+function doUnfreezeCard(id){updateCard(id,{status:'active'});appendAudit('card.unfrozen',CU.id,'card',id,{});toast('Card unfrozen','ok');route()}
+
+function doConfirmDeposit(id){
+  const dep=getDepById(id);if(!dep)return;
+  const accs=getUserAccounts(dep.userId);const acc=accs[0];if(!acc)return;
+  updateDeposit(id,{status:'confirmed',confirmedAt:new Date().toISOString()});
+  addLedger({id:'led_'+uid(10),accountId:acc.id,userId:dep.userId,type:'credit',btcAmount:dep.netBtc,fiatAmount:dep.fiatAmount,currency:dep.fiatCurrency||'USD',description:'Bitcoin deposit confirmed',depositId:id,ts:new Date().toISOString()});
+  appendAudit('deposit.confirmed',CU.id,'deposit',id,{netBtc:dep.netBtc});
+  toast('Deposit confirmed and balance updated','ok');route()
+}
+
+function doApproveKYC(userId){
+  updateKYC(userId,{status:'approved',reviewedAt:new Date().toISOString(),rejectionReason:null});
+  updateUser(userId,{kycStatus:'approved'});
+  appendAudit('kyc.approved',CU.id,'kyc',userId,{});
+  toast('KYC approved','ok');route()
+}
+
+function doShowRejectModal(userId){
+  showModal(`<div class="moverlay" id="rej-modal">
+    <div class="modal"><div class="mh"><span class="mhtitle">Reject KYC</span><button class="mclose" data-action="closeModal">&times;</button></div>
+    <div class="mb"><div class="fg"><label class="flabel">Rejection Reason</label><input class="finput" id="rej-reason" placeholder="e.g. ID document unclear" required></div>
+    <input type="hidden" id="rej-uid" value="${esc(userId)}"></div>
+    <div class="mf"><button class="btn btn-ghost" data-action="closeModal">Cancel</button><button class="btn btn-danger" data-action="confirmRejectKYC">Reject</button></div>
+    </div></div>`)
+}
+
+function doConfirmReject(){
+  const reason=document.getElementById('rej-reason');const uidEl=document.getElementById('rej-uid');
+  if(!reason||!reason.value.trim()){toast('Enter a rejection reason','warn');return}
+  const userId=uidEl.value;
+  updateKYC(userId,{status:'rejected',reviewedAt:new Date().toISOString(),rejectionReason:reason.value.trim()});
+  updateUser(userId,{kycStatus:'rejected'});
+  appendAudit('kyc.rejected',CU.id,'kyc',userId,{reason:reason.value.trim()});
+  closeModal();toast('KYC rejected','ok');route()
+}
+
+function doShowAddIncident(){
+  showModal(`<div class="moverlay">
+    <div class="modal"><div class="mh"><span class="mhtitle">Add Incident</span><button class="mclose" data-action="closeModal">&times;</button></div>
+    <div class="mb">
+      <div class="fg"><label class="flabel">Title</label><input class="finput" id="inc-title" required></div>
+      <div class="fg"><label class="flabel">Severity</label><select class="finput fselect" id="inc-sev"><option value="sev3">SEV-3 (Minor)</option><option value="sev2">SEV-2 (Moderate)</option><option value="sev1">SEV-1 (Critical)</option></select></div>
+      <div class="fg"><label class="flabel">Impact</label><input class="finput" id="inc-impact"></div>
+      <div class="fg"><label class="flabel">Mitigation</label><input class="finput" id="inc-mitigation"></div>
+    </div>
+    <div class="mf"><button class="btn btn-ghost" data-action="closeModal">Cancel</button><button class="btn btn-primary" data-action="submitIncident">Create Incident</button></div>
+    </div></div>`)
+}
+
+function doSubmitIncident(){
+  const title=document.getElementById('inc-title');
+  if(!title||!title.value.trim()){toast('Enter a title','warn');return}
+  const sev=document.getElementById('inc-sev').value;
+  const impact=document.getElementById('inc-impact').value;
+  const mitigation=document.getElementById('inc-mitigation').value;
+  createIncident({title:title.value.trim(),sev,status:'open',impact,mitigation,rca:'',startedAt:new Date().toISOString(),resolvedAt:null});
+  appendAudit('incident.created',CU.id,'incident',title.value,{sev});
+  closeModal();toast('Incident created','ok');route()
+}
+
+function doResolveIncident(id){
+  updateIncident(id,{status:'resolved',resolvedAt:new Date().toISOString()});
+  appendAudit('incident.resolved',CU.id,'incident',id,{});
+  toast('Incident resolved','ok');route()
+}
+
+function doSaveCompliance(){
+  const score=parseInt(document.getElementById('comp-score').value)||87;
+  const amlStatus=document.getElementById('comp-aml').value;
+  const kycRate=parseInt(document.getElementById('comp-kyc').value)||72;
+  const slaUptime=document.getElementById('comp-uptime').value||'99.94';
+  const current=getCompliance();
+  saveCompliance({...current,score,amlStatus,kycRate,slaUptime});
+  appendAudit('compliance.updated',CU.id,'compliance','posture',{score,amlStatus});
+  toast('Compliance posture saved','ok')
+}
+
+function doUpdateAssertion(idx,status){
+  const comp=getCompliance();
+  if(comp.assertions[idx])comp.assertions[idx].status=status;
+  saveCompliance(comp);toast('Assertion updated','ok')
+}
+
+function doSubmitRating(form){
+  const fd=new FormData(form);
+  const reliability=parseInt(document.getElementById('inp-reliability').value)||0;
+  const support=parseInt(document.getElementById('inp-support').value)||0;
+  const transparency=parseInt(document.getElementById('inp-transparency').value)||0;
+  const assertion=fd.get('assertion');
+  if(!reliability||!support||!transparency){toast('Please select all star ratings','warn');return}
+  if(!assertion||!assertion.trim()){toast('Please enter an assertion','warn');return}
+  addRating({userId:CU.id,reliability,support,transparency,assertion:assertion.trim(),comment:fd.get('comment')||''});
+  appendAudit('rating.submitted',CU.id,'rating',CU.id,{reliability,support,transparency});
+  toast('Rating submitted!','ok');route()
+}
+
+function doRateStar(prefix,val){
+  const container=document.getElementById('stars-'+prefix);
+  const inp=document.getElementById('inp-'+prefix);
+  if(container){container.querySelectorAll('.star').forEach((s,i)=>{s.classList.toggle('on',i<val)})}
+  if(inp)inp.value=val
+}
+
+function doVerifyIntegrity(){
+  const result=verifyIntegrity();
+  const el=document.getElementById('integrity-result');
+  if(el){el.innerHTML=result.ok?`<div class="int-pass">&#9989; PASS &mdash; ${esc(result.msg)}</div>`:`<div class="int-fail">&#10060; FAIL &mdash; ${esc(result.msg)}</div>`}
+  toast(result.ok?'Integrity check passed':'Integrity check FAILED',result.ok?'ok':'err')
+}
+
+function doExportTransparency(){
+  const user=CU;
+  downloadJSON({
+    exportType:'transparency_pack',exportedAt:new Date().toISOString(),user:{name:user.name,email:user.email,region:user.region,referenceCode:user.referenceCode,kycStatus:user.kycStatus,memberSince:user.createdAt},
+    deposits:getUserDeposits(user.id),ledger:getUserLedger(user.id),compliance:getCompliance(),
+    disclaimer:'ApexTrust Banking is a fictional demo entity. This data is for demonstration purposes only.'
+  },'apextrust-transparency-pack.json');
+  toast('Transparency pack downloaded')
+}
+
+function doExportCompliance(){
+  downloadJSON({
+    exportType:'compliance_report',exportedAt:new Date().toISOString(),posture:getCompliance(),
+    incidents:getIncidents(),ratings:getRatings(),ratingAverages:ratingAvgs(),
+    auditSummary:{totalEntries:getAudit().length,integrityCheck:verifyIntegrity()},
+    disclaimer:'ApexTrust Banking is a fictional demo entity.'
+  },'apextrust-compliance-report.json');
+  toast('Compliance report downloaded')
+}
+
+function doExportAudit(){
+  downloadJSON({exportType:'audit_log',exportedAt:new Date().toISOString(),entries:getAudit(),integrityCheck:verifyIntegrity()},'apextrust-audit-log.json');
+  toast('Audit log downloaded')
+}
+
+function doCopy(text){
+  if(!text)return;
+  navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard'),'ok').catch(()=>{});
+  toast('Copied!','ok')
+}
+
+// ==================== SEED DATA ====================
+function seedData(){
+  if(dbGet('seeded'))return;
+
+  // Admin user
+  const admin={id:'usr_admin01',name:'Admin User',email:'admin@apextrust.demo',password:'Admin@123',role:'admin',region:'US',kycStatus:'approved',referenceCode:'APT-ADMIN000',createdAt:'2025-09-01T00:00:00.000Z'};
+
+  // Client users
+  const alice={id:'usr_alice01',name:'Alice Mercer',email:'alice@apextrust.demo',password:'Demo@123',role:'client',region:'US',kycStatus:'approved',referenceCode:'APT-ALCE2024',createdAt:'2025-10-01T00:00:00.000Z'};
+  const bob={id:'usr_bob01',name:'Bob Tanaka',email:'bob@apextrust.demo',password:'Demo@123',role:'client',region:'UK',kycStatus:'submitted',referenceCode:'APT-BTAN2024',createdAt:'2025-10-15T00:00:00.000Z'};
+  const carlos={id:'usr_car01',name:'Carlos Reyes',email:'carlos@apextrust.demo',password:'Demo@123',role:'client',region:'MX',kycStatus:'none',referenceCode:'APT-CREY2024',createdAt:'2025-11-01T00:00:00.000Z'};
+  const emma={id:'usr_emma01',name:'Emma Fischer',email:'emma@apextrust.demo',password:'Demo@123',role:'client',region:'EU',kycStatus:'approved',referenceCode:'APT-EFIA2024',createdAt:'2025-11-15T00:00:00.000Z'};
+  saveUsers([admin,alice,bob,carlos,emma]);
+
+  // Accounts
+  const aliceAcc={id:'acc_alice01',userId:'usr_alice01',region:'US',rail:'ACH',currency:'USD',routingNumber:'021000021',accountNumber:'4729163820',createdAt:'2025-10-01T00:00:00.000Z'};
+  const bobAcc={id:'acc_bob01',userId:'usr_bob01',region:'UK',rail:'FPS',currency:'GBP',sortCode:'20-48-09',accountNumber:'31926483',createdAt:'2025-10-15T00:00:00.000Z'};
+  const carlosAcc={id:'acc_car01',userId:'usr_car01',region:'MX',rail:'SPEI',currency:'MXN',clabe:'032180000118359719',createdAt:'2025-11-01T00:00:00.000Z'};
+  const emmaAcc={id:'acc_emma01',userId:'usr_emma01',region:'EU',rail:'SEPA',currency:'EUR',iban:'DE89 3704 0044 0532 0130 00',bic:'APXTGB2L',createdAt:'2025-11-15T00:00:00.000Z'};
+  saveAccounts([aliceAcc,bobAcc,carlosAcc,emmaAcc]);
+
+  // Deposits
+  const dep1={id:'dep_alice01',userId:'usr_alice01',accountId:'acc_alice01',btcAmount:0.04,fiatAmount:2500,fiatCurrency:'USD',btcRate:62500,fee:0.0002,netBtc:0.0398,status:'confirmed',btcAddress:'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',memo:'APT-ALCE2024',quoteExpiresAt:'2025-11-01T12:15:00.000Z',createdAt:'2025-11-01T12:00:00.000Z',confirmedAt:'2025-11-01T13:30:00.000Z'};
+  const dep2={id:'dep_alice02',userId:'usr_alice01',accountId:'acc_alice01',btcAmount:0.016,fiatAmount:1000,fiatCurrency:'USD',btcRate:62500,fee:0.00008,netBtc:0.01592,status:'confirmed',btcAddress:'bc1qah4ssg3d3nm0p6n4ggx6sn5a49gqjdqhpctga9',memo:'APT-ALCE2024',quoteExpiresAt:'2025-12-01T09:15:00.000Z',createdAt:'2025-12-01T09:00:00.000Z',confirmedAt:'2025-12-01T10:45:00.000Z'};
+  const dep3={id:'dep_bob01',userId:'usr_bob01',accountId:'acc_bob01',btcAmount:0.01,fiatAmount:625,fiatCurrency:'GBP',btcRate:62500,fee:0.00005,netBtc:0.00995,status:'pending',btcAddress:'bc1q59u7spg5z73mpnqmcxzh3d28rxp9rq5y8qk8m9',memo:'APT-BTAN2024',quoteExpiresAt:'2026-01-15T14:15:00.000Z',createdAt:'2026-01-15T14:00:00.000Z',confirmedAt:null};
+  const dep4={id:'dep_emma01',userId:'usr_emma01',accountId:'acc_emma01',btcAmount:0.02,fiatAmount:1250,fiatCurrency:'EUR',btcRate:62500,fee:0.0001,netBtc:0.0199,status:'confirmed',btcAddress:'bc1q7f3fuvjgldk0q7ltzkg5qmefkh6e2r89qm0k3p',memo:'APT-EFIA2024',quoteExpiresAt:'2026-01-10T10:15:00.000Z',createdAt:'2026-01-10T10:00:00.000Z',confirmedAt:'2026-01-10T11:20:00.000Z'};
+  saveDeposits([dep1,dep2,dep3,dep4]);
+
+  // Ledger entries for confirmed deposits
+  saveLedger([
+    {id:'led_a01',accountId:'acc_alice01',userId:'usr_alice01',type:'credit',btcAmount:0.0398,fiatAmount:2487.5,currency:'USD',description:'Bitcoin deposit confirmed',depositId:'dep_alice01',ts:'2025-11-01T13:30:00.000Z'},
+    {id:'led_a02',accountId:'acc_alice01',userId:'usr_alice01',type:'credit',btcAmount:0.01592,fiatAmount:995,currency:'USD',description:'Bitcoin deposit confirmed',depositId:'dep_alice02',ts:'2025-12-01T10:45:00.000Z'},
+    {id:'led_e01',accountId:'acc_emma01',userId:'usr_emma01',type:'credit',btcAmount:0.0199,fiatAmount:1243.75,currency:'EUR',description:'Bitcoin deposit confirmed',depositId:'dep_emma01',ts:'2026-01-10T11:20:00.000Z'}
+  ]);
+
+  // KYC records
+  saveKYCs([
+    {id:'kyc_alice01',userId:'usr_alice01',firstName:'Alice',lastName:'Mercer',dob:'1990-03-22',nationality:'US',idType:'passport',idNumber:'P29847362',address:'742 Evergreen Terrace',city:'Springfield',state:'IL',zip:'62701',country:'US',status:'approved',submittedAt:'2025-10-03T00:00:00.000Z',reviewedAt:'2025-10-05T00:00:00.000Z',rejectionReason:null},
+    {id:'kyc_bob01',userId:'usr_bob01',firstName:'Bob',lastName:'Tanaka',dob:'1985-07-14',nationality:'UK',idType:'drivers_license',idNumber:'TANAK714085BH9AB',address:'10 Downing Mews',city:'London',state:'Greater London',zip:'SW1A 2AA',country:'UK',status:'submitted',submittedAt:'2025-10-18T00:00:00.000Z',reviewedAt:null,rejectionReason:null},
+    {id:'kyc_emma01',userId:'usr_emma01',firstName:'Emma',lastName:'Fischer',dob:'1992-11-05',nationality:'DE',idType:'national_id',idNumber:'ID9273648201',address:'Hauptstrasse 42',city:'Frankfurt',state:'Hessen',zip:'60313',country:'DE',status:'approved',submittedAt:'2025-11-17T00:00:00.000Z',reviewedAt:'2025-11-19T00:00:00.000Z',rejectionReason:null}
+  ]);
+
+  // Card for Alice
+  saveCards([{id:'card_alice01',userId:'usr_alice01',accountId:'acc_alice01',number:'4111 5283 9047 2831',holder:'ALICE MERCER',expiry:'12/28',cvv:'847',status:'active',spendLimit:5000,createdAt:'2025-12-15T00:00:00.000Z'}]);
+
+  // Incidents
+  saveIncidents([
+    {id:'inc_01',title:'Deposit processing delay',sev:'sev2',status:'resolved',impact:'Deposit confirmations delayed by 45 minutes across all regions.',mitigation:'Manual processing queue enabled; backlog cleared.',rca:'Database connection pool exhausted due to traffic spike. Pool size increased.',startedAt:'2026-02-17T08:30:00.000Z',resolvedAt:'2026-02-17T11:45:00.000Z',ts:'2026-02-17T08:30:00.000Z'},
+    {id:'inc_02',title:'Elevated API latency',sev:'sev3',status:'open',impact:'Minor delays in dashboard data refresh (approx. 2-3 seconds).',mitigation:'Load balancer configuration being tuned.',rca:'',startedAt:'2026-02-25T01:15:00.000Z',resolvedAt:null,ts:'2026-02-25T01:15:00.000Z'}
+  ]);
+
+  // Ratings
+  saveRatings([
+    {id:'rat_01',userId:'usr_alice01',reliability:5,support:4,transparency:5,assertion:'The platform has been rock-solid. Deposits clear fast and the audit trail gives me confidence.',comment:'Love the compliance transparency features.',ts:'2026-01-20T00:00:00.000Z'},
+    {id:'rat_02',userId:'usr_emma01',reliability:4,support:5,transparency:5,assertion:'Exceptional support team. SEPA account provisioning was seamless.',comment:'The compliance center is exactly what institutional clients need.',ts:'2026-02-10T00:00:00.000Z'}
+  ]);
+
+  // Compliance posture
+  saveCompliance({score:87,amlStatus:'compliant',kycRate:72,slaUptime:'99.94',slaResponse:'< 4h',lastAudit:'2025-11-15T00:00:00.000Z',nextAudit:'2026-05-15T00:00:00.000Z',assertions:[{label:'AML/KYC Policy',status:'compliant'},{label:'Data Residency (EU)',status:'compliant'},{label:'SOC 2 Type II',status:'in_review'},{label:'ISO 27001',status:'compliant'},{label:'PCI DSS Level 1',status:'compliant'},{label:'GDPR',status:'compliant'}]});
+
+  // Seed audit log
+  const entries=[
+    {action:'user.signup',userId:'usr_alice01',entityType:'user',entityId:'usr_alice01',details:{region:'US'}},
+    {action:'user.signup',userId:'usr_bob01',entityType:'user',entityId:'usr_bob01',details:{region:'UK'}},
+    {action:'user.signup',userId:'usr_car01',entityType:'user',entityId:'usr_car01',details:{region:'MX'}},
+    {action:'user.signup',userId:'usr_emma01',entityType:'user',entityId:'usr_emma01',details:{region:'EU'}},
+    {action:'kyc.submitted',userId:'usr_alice01',entityType:'kyc',entityId:'usr_alice01',details:{}},
+    {action:'kyc.approved',userId:'usr_admin01',entityType:'kyc',entityId:'usr_alice01',details:{}},
+    {action:'deposit.created',userId:'usr_alice01',entityType:'deposit',entityId:'dep_alice01',details:{btcAmount:0.04}},
+    {action:'deposit.confirmed',userId:'usr_admin01',entityType:'deposit',entityId:'dep_alice01',details:{netBtc:0.0398}},
+    {action:'kyc.submitted',userId:'usr_bob01',entityType:'kyc',entityId:'usr_bob01',details:{}},
+    {action:'deposit.created',userId:'usr_alice01',entityType:'deposit',entityId:'dep_alice02',details:{btcAmount:0.016}},
+    {action:'deposit.confirmed',userId:'usr_admin01',entityType:'deposit',entityId:'dep_alice02',details:{netBtc:0.01592}},
+    {action:'kyc.submitted',userId:'usr_emma01',entityType:'kyc',entityId:'usr_emma01',details:{}},
+    {action:'kyc.approved',userId:'usr_admin01',entityType:'kyc',entityId:'usr_emma01',details:{}},
+    {action:'deposit.created',userId:'usr_emma01',entityType:'deposit',entityId:'dep_emma01',details:{btcAmount:0.02}},
+    {action:'deposit.confirmed',userId:'usr_admin01',entityType:'deposit',entityId:'dep_emma01',details:{netBtc:0.0199}},
+    {action:'card.issued',userId:'usr_alice01',entityType:'card',entityId:'card_alice01',details:{}},
+    {action:'deposit.created',userId:'usr_bob01',entityType:'deposit',entityId:'dep_bob01',details:{btcAmount:0.01}},
+    {action:'rating.submitted',userId:'usr_alice01',entityType:'rating',entityId:'rat_01',details:{}},
+    {action:'rating.submitted',userId:'usr_emma01',entityType:'rating',entityId:'rat_02',details:{}}
+  ];
+  const baseTime=new Date('2025-10-01T00:00:00.000Z').getTime();
+  const log=[];
+  entries.forEach((e,i)=>{
+    const seq=i+1;
+    const prev=log.length>0?log[log.length-1].hash:'00000000';
+    const ts=new Date(baseTime+i*3*24*60*60*1000).toISOString();
+    const entry={id:'aud_seed'+String(i).padStart(2,'0'),seq,...e,ts,prevHash:prev,hash:''};
+    entry.hash=auditHash(entry,prev);
+    log.push(entry)
+  });
+  saveAudit(log);
+  dbSet('seeded',true)
+}
+
+// ==================== INIT ====================
+function init(){
+  loadSession();
+  seedData();
+  window.addEventListener('hashchange',route);
+  route()
+}
+init();
+</script>
+</body>
+</html>
