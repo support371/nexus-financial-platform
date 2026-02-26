@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApexTrust Banking | Institutional Demo</title>
+  <style>
+    :root { --bg:#0a1222; --panel:#121d35; --muted:#97a7c3; --text:#ecf3ff; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --line:#2a3b62; --accent:#4f8cff; }
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+    body{margin:0;background:linear-gradient(180deg,#060e1d,#101b30);color:var(--text)}
+    header{padding:14px 18px;border-bottom:1px solid #1f3155;background:#0a1326;position:sticky;top:0;z-index:10}
+    .brand{font-weight:700;font-size:18px}
+    .sub{color:var(--muted);font-size:12px;margin-top:2px}
+    nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    button{border:1px solid var(--line);background:#162547;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
+    button.primary{background:var(--accent)}
+    button:hover{border-color:#5376bd}
+    main{padding:14px;max-width:1280px;margin:0 auto}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+    .hidden{display:none}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #324974;background:#0a1326;color:var(--text);margin-top:6px}
+    textarea{min-height:76px}
+    label{font-size:13px;color:#d7e4ff;display:block;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:8px;border-bottom:1px solid #253a62;text-align:left;vertical-align:top}
+    .kpi{font-size:22px;font-weight:700}
+    .muted{color:var(--muted)}
+    .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    .pill{display:inline-block;border:1px solid var(--line);padding:3px 8px;border-radius:999px;font-size:12px}
+    .alert{padding:10px;border:1px solid #74550a;background:#30280d;color:#fde68a;border-radius:8px;margin-bottom:10px}
+    .section-title{margin-top:0}
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">ApexTrust Banking</div>
+  <div class="sub">Institutional Bitcoin Banking Beta | admin@apextrust.bank</div>
+  <nav id="nav"></nav>
+</header>
+<main>
+  <section id="view" class="panel"></section>
+</main>
+<script>
+(() => {
+  const KEY = 'apextrust_state_v2';
+  const now = () => new Date().toISOString();
+  const uid = (p='id') => `${p}_${Math.random().toString(36).slice(2,9)}`;
+  const q = (sel) => document.querySelector(sel);
+  const h = (s) => {
+    let hash = 5381;
+    for (let i = 0; i < s.length; i++) hash = ((hash << 5) + hash) + s.charCodeAt(i);
+    return (hash >>> 0).toString(16).padStart(8, '0');
+  };
+
+  const regionRail = {
+    US: () => ({ rail: 'ACH', routing: '026009593', account: String(Math.floor(100000000 + Math.random() * 899999999)) }),
+    UK: () => ({ rail: 'FPS', sortCode: '20-10-55', account: String(Math.floor(10000000 + Math.random() * 89999999)) }),
+    MX: () => ({ rail: 'SPEI', clabe: '032180000118359719' }),
+    BR: (email) => ({ rail: 'PIX', pixKey: email }),
+    EU: () => ({ rail: 'SEPA', iban: 'DE89370400440532013000', bic: 'COBADEFFXXX' })
+  };
+
+  const initial = {
+    users: [{ id: 'u_admin', name: 'Platform Admin', email: 'admin@apextrust.bank', password: 'admin123', role: 'admin', region: 'US', referenceCode: 'APT-ADMIN' }],
+    sessions: { currentUserId: null },
+    accounts: [],
+    kyc: [],
+    deposits: [],
+    cards: [],
+    ledger: [],
+    ratings: [],
+    incidents: [{ id: uid('inc'), severity: 'sev-2', status: 'monitoring', impact: 'Temporary quote generation slowness', mitigation: 'Autoscaling expanded', rca: 'Queue contention', createdAt: now(), updatedAt: now(), resolvedAt: null, owner: 'Ops Lead' }],
+    compliance: { kycAml: 'Control operating', sanctions: 'Daily list scans', dataProtection: 'PII minimization mapped', incidentResponse: 'Runbook tested', changeMgmt: 'CAB weekly', vendorRisk: 'Quarterly reviews', uptime: '99.95%', latency: '185ms p95', errorRate: '0.08%', lastDeploy: now(), lastIncident: now() },
+    audit: [{ id: uid('aud'), ts: now(), actor: 'system', action: 'bootstrap', payload: { seed: true }, prevHash: 'GENESIS', hash: 'GENESIS' }],
+    consents: []
+  };
+
+  let state = JSON.parse(localStorage.getItem(KEY) || 'null') || structuredClone(initial);
+  let route = 'landing';
+
+  const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+  const user = () => state.users.find(x => x.id === state.sessions.currentUserId) || null;
+  const isAdmin = () => user()?.role === 'admin';
+  const money = (n) => `$${Number(n).toFixed(2)}`;
+  const userLedger = (id) => state.ledger.filter(e => e.clientId === id);
+  const portfolio = (id) => userLedger(id).reduce((a, e) => a + (e.direction === 'credit' ? e.amount : -e.amount), 0);
+  const ownOrAll = (arr, key='clientId') => isAdmin() ? arr : arr.filter(i => i[key] === user()?.id);
+
+  function log(action, payload={}) {
+    const prev = state.audit[state.audit.length - 1];
+    const entry = { id: uid('aud'), ts: now(), actor: user()?.email || 'anonymous', action, payload, prevHash: prev.hash };
+    entry.hash = h(JSON.stringify(entry));
+    state.audit.push(entry);
+    save();
+  }
+
+  function verifyAudit() {
+    for (let i = 1; i < state.audit.length; i++) {
+      const prev = state.audit[i - 1];
+      const cur = state.audit[i];
+      if (cur.prevHash !== prev.hash) return 'CHECK';
+      const clone = { ...cur };
+      delete clone.hash;
+      if (h(JSON.stringify(clone)) !== cur.hash) return 'CHECK';
+    }
+    return 'OK';
+  }
+
+  function provisionAccount(u) {
+    const payload = regionRail[u.region](u.email);
+    state.accounts.push({ id: uid('acct'), clientId: u.id, region: u.region, ...payload, createdAt: now() });
+  }
+
+  function download(name, obj) {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' }));
+    link.download = name;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 100);
+  }
+
+  function nav() {
+    const base = ['landing', 'auth', 'dashboard', 'accounts', 'deposits', 'kyc', 'cards', 'compliance', 'settings'];
+    const admin = ['admin-dashboard', 'admin-clients', 'admin-deposits', 'admin-cards', 'admin-kyc', 'admin-compliance', 'admin-audit'];
+    const items = [...base, ...(isAdmin() ? admin : [])];
+    const container = q('#nav');
+    container.innerHTML = '';
+    items.forEach(item => {
+      const b = document.createElement('button');
+      b.textContent = item.toUpperCase();
+      b.onclick = () => { route = item; render(); };
+      container.appendChild(b);
+    });
+    const sessionBtn = document.createElement('button');
+    sessionBtn.textContent = user() ? 'SIGN OUT' : 'GUEST';
+    sessionBtn.onclick = () => {
+      if (user()) log('sign_out');
+      state.sessions.currentUserId = null;
+      save();
+      route = 'landing';
+      render();
+    };
+    container.appendChild(sessionBtn);
+  }
+
+  function renderLanding() {
+    q('#view').innerHTML = `<h2 class="section-title">Welcome to ApexTrust Banking</h2>
+      <p class="muted">Institutional-grade white-label bitcoin banking with compliance transparency and audit-ready controls.</p>
+      <div class="grid">
+        <div class="panel"><h3>Compliance Transparency</h3><p>Clear posture fields, SLA KPIs, and governance evidence surfaces.</p></div>
+        <div class="panel"><h3>Operational Accountability</h3><p>Append-only tamper-evident audit logs with JSON exports.</p></div>
+        <div class="panel"><h3>Client Assertions</h3><p>Reliability, support, and transparency ratings with distribution analytics.</p></div>
+      </div>`;
+  }
+
+  function renderAuth() {
+    q('#view').innerHTML = `<h2 class="section-title">Sign Up / Sign In</h2>
+      <div class="grid">
+        <div>
+          <h3>Sign Up</h3>
+          <label>Name<input id="su_name" /></label>
+          <label>Email<input id="su_email" placeholder="demo@apextrust.bank" /></label>
+          <label>Password<input id="su_pw" type="password" /></label>
+          <label>Region
+            <select id="su_region"><option>US</option><option>UK</option><option>MX</option><option>BR</option><option>EU</option></select>
+          </label>
+          <button id="signup" class="primary">Create Client Profile</button>
+        </div>
+        <div>
+          <h3>Sign In</h3>
+          <label>Email<input id="si_email" /></label>
+          <label>Password<input id="si_pw" type="password" /></label>
+          <button id="signin">Sign In</button>
+          <p class="muted">Admin: admin@apextrust.bank / admin123</p>
+          <p id="auth_msg" class="muted"></p>
+        </div>
+      </div>`;
+
+    q('#signup').onclick = () => {
+      const name = q('#su_name').value.trim();
+      const email = q('#su_email').value.trim().toLowerCase();
+      const password = q('#su_pw').value;
+      const region = q('#su_region').value;
+      if (!name || !email || !password) return q('#auth_msg').textContent = 'All signup fields are required.';
+      if (state.users.some(u => u.email === email)) return q('#auth_msg').textContent = 'Email already exists.';
+      const profile = { id: uid('u'), name, email, password, role: 'client', region, referenceCode: `APT-${Math.random().toString(36).slice(2,8).toUpperCase()}` };
+      state.users.push(profile);
+      state.kyc.push({ id: uid('kyc'), clientId: profile.id, status: 'pending', documents: [], updatedAt: now() });
+      provisionAccount(profile);
+      state.sessions.currentUserId = profile.id;
+      log('signup', { userId: profile.id, region });
+      save();
+      route = 'dashboard';
+      render();
+    };
+
+    q('#signin').onclick = () => {
+      const email = q('#si_email').value.trim().toLowerCase();
+      const password = q('#si_pw').value;
+      const account = state.users.find(u => u.email === email && u.password === password);
+      if (!account) return q('#auth_msg').textContent = 'Invalid credentials.';
+      state.sessions.currentUserId = account.id;
+      log('sign_in', { userId: account.id });
+      save();
+      route = account.role === 'admin' ? 'admin-dashboard' : 'dashboard';
+      render();
+    };
+  }
+
+  function renderDashboard() {
+    if (!user()) return q('#view').innerHTML = '<h2>Dashboard</h2><p>Please sign in.</p>';
+    const me = user();
+    const mineKyc = state.kyc.find(k => k.clientId === me.id);
+    q('#view').innerHTML = `<h2 class="section-title">Client Dashboard</h2>
+      <div class="grid">
+        <div><div class="muted">Portfolio (derived ledger)</div><div class="kpi">${money(portfolio(me.id))}</div></div>
+        <div><div class="muted">KYC</div><div class="kpi">${(mineKyc?.status || 'pending').toUpperCase()}</div></div>
+        <div><div class="muted">Reference Code</div><div class="kpi">${me.referenceCode}</div></div>
+        <div><div class="muted">Uptime</div><div class="kpi">${state.compliance.uptime}</div></div>
+      </div>
+      <h3>Recent Activity</h3>
+      <table><tr><th>Type</th><th>Direction</th><th>Amount</th><th>Timestamp</th></tr>
+      ${userLedger(me.id).slice(-10).reverse().map(e => `<tr><td>${e.type}</td><td>${e.direction}</td><td>${money(e.amount)}</td><td>${e.ts}</td></tr>`).join('') || '<tr><td colspan="4">No ledger activity yet.</td></tr>'}
+      </table>`;
+  }
+
+  function renderAccounts() {
+    if (!user()) return q('#view').innerHTML = '<h2>Accounts</h2><p>Please sign in.</p>';
+    const rows = ownOrAll(state.accounts).map(a => {
+      const owner = state.users.find(u => u.id === a.clientId)?.email || a.clientId;
+      const details = [a.routing && `Routing ${a.routing}`, a.sortCode && `Sort ${a.sortCode}`, a.account && `Acct ${a.account}`, a.clabe && `CLABE ${a.clabe}`, a.pixKey && `PIX ${a.pixKey}`, a.iban && `IBAN ${a.iban}`, a.bic && `BIC ${a.bic}`].filter(Boolean).join(' | ');
+      return `<tr><td>${owner}</td><td>${a.region}</td><td>${a.rail}</td><td>${details}</td></tr>`;
+    }).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Accounts</h2><table><tr><th>Client</th><th>Region</th><th>Rail</th><th>Identifiers</th></tr>${rows || '<tr><td colspan="4">No accounts.</td></tr>'}</table>`;
+  }
+
+  function renderDeposits() {
+    if (!user()) return q('#view').innerHTML = '<h2>Deposits</h2><p>Please sign in.</p>';
+    const me = user();
+    const rows = ownOrAll(state.deposits).map(d => `<tr><td>${d.id}</td><td>${state.users.find(u => u.id === d.clientId)?.email || d.clientId}</td><td>${money(d.amount)}</td><td>${money(d.fee)}</td><td>${money(d.net)}</td><td>${d.expiresAt}</td><td><span class="pill">${d.status}</span></td><td>${(!isAdmin() && d.status === 'quoted') ? `<button data-settle="${d.id}">Settle</button>` : ''}</td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Deposits</h2>
+      <div class="alert">IMPORTANT: Include reference code <b>${me.referenceCode}</b> in transfer memo/description for automatic processing.</div>
+      ${!isAdmin() ? `<label>Amount (USD)<input id="dep_amount" type="number" min="1" value="1200" /></label><button id="create_quote" class="primary">Create Quote</button>` : ''}
+      <h3>Deposit Requests</h3>
+      <table><tr><th>ID</th><th>Client</th><th>Gross</th><th>Fee</th><th>Net</th><th>Expiry</th><th>Status</th><th>Action</th></tr>${rows || '<tr><td colspan="8">No deposits yet.</td></tr>'}</table>`;
+
+    if (!isAdmin()) {
+      q('#create_quote').onclick = () => {
+        const amount = Number(q('#dep_amount').value);
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        const fee = +(amount * 0.012).toFixed(2);
+        const net = +(amount - fee).toFixed(2);
+        state.deposits.push({ id: uid('dep'), clientId: me.id, amount, fee, net, rate: 1, status: 'quoted', expiresAt: new Date(Date.now() + 3 * 60000).toISOString(), createdAt: now() });
+        log('deposit_quote', { amount });
+        save();
+        renderDeposits();
+      };
+
+      document.querySelectorAll('[data-settle]').forEach(btn => {
+        btn.onclick = () => {
+          const dep = state.deposits.find(d => d.id === btn.dataset.settle && d.clientId === me.id);
+          if (!dep) return;
+          if (Date.now() > Date.parse(dep.expiresAt)) {
+            dep.status = 'expired';
+            log('deposit_expired', { depositId: dep.id });
+            save();
+            return renderDeposits();
+          }
+          dep.status = 'settled';
+          state.ledger.push({ id: uid('led'), clientId: me.id, type: 'deposit_settlement', amount: dep.net, currency: 'USD', direction: 'credit', ts: now(), source: dep.id });
+          log('deposit_settled', { depositId: dep.id, net: dep.net });
+          save();
+          route = 'dashboard';
+          render();
+        };
+      });
+    }
+  }
+
+  function renderKyc() {
+    if (!user()) return q('#view').innerHTML = '<h2>KYC</h2><p>Please sign in.</p>';
+    if (!isAdmin()) {
+      const rec = state.kyc.find(k => k.clientId === user().id);
+      q('#view').innerHTML = `<h2 class="section-title">KYC</h2><p>Status: <span class="pill">${rec?.status || 'pending'}</span></p>
+      <label>Document descriptor<input id="doc_name" placeholder="passport.pdf" /></label>
+      <button id="doc_submit">Submit Document</button>`;
+      q('#doc_submit').onclick = () => {
+        const val = q('#doc_name').value.trim();
+        if (!val) return;
+        rec.documents.push({ name: val, submittedAt: now() });
+        rec.status = 'in_review';
+        rec.updatedAt = now();
+        log('kyc_submitted', { clientId: user().id, document: val });
+        save();
+        renderKyc();
+      };
+      return;
+    }
+    const rows = state.kyc.map(k => `<tr><td>${state.users.find(u => u.id === k.clientId)?.email || k.clientId}</td><td>${k.status}</td><td>${k.documents.length}</td><td><button data-approve="${k.clientId}">Approve</button> <button data-reject="${k.clientId}">Reject</button></td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Admin KYC Records</h2><table><tr><th>Client</th><th>Status</th><th>Docs</th><th>Action</th></tr>${rows || '<tr><td colspan="4">No KYC records.</td></tr>'}</table>`;
+    document.querySelectorAll('[data-approve]').forEach(btn => btn.onclick = () => { const r = state.kyc.find(k => k.clientId === btn.dataset.approve); r.status = 'approved'; r.updatedAt = now(); log('kyc_approved', { clientId: r.clientId }); save(); renderKyc(); });
+    document.querySelectorAll('[data-reject]').forEach(btn => btn.onclick = () => { const r = state.kyc.find(k => k.clientId === btn.dataset.reject); r.status = 'rejected'; r.updatedAt = now(); log('kyc_rejected', { clientId: r.clientId }); save(); renderKyc(); });
+  }
+
+  function cardEligibility(u) {
+    const blockers = [];
+    const rec = state.kyc.find(k => k.clientId === u.id);
+    if (rec?.status !== 'approved') blockers.push('KYC must be approved');
+    if (portfolio(u.id) < 1000) blockers.push('Portfolio must be at least $1,000');
+    if (u.region !== 'US') blockers.push('Region must be US');
+    return blockers;
+  }
+
+  function renderCards() {
+    if (!user()) return q('#view').innerHTML = '<h2>Cards</h2><p>Please sign in.</p>';
+    if (!isAdmin()) {
+      const me = user();
+      const blockers = cardEligibility(me);
+      const mine = state.cards.filter(c => c.clientId === me.id);
+      q('#view').innerHTML = `<h2 class="section-title">Cards (GEM-ATR)</h2>
+        <p>Eligibility: ${blockers.length ? '<span class="bad">Blocked</span>' : '<span class="ok">Eligible</span>'}</p>
+        <ul>${blockers.map(b => `<li>${b}</li>`).join('') || '<li>No blockers</li>'}</ul>
+        ${!blockers.length ? '<button id="issue_card" class="primary">Issue Card</button>' : ''}
+        <h3>My Cards</h3>
+        <table><tr><th>Last4</th><th>Status</th><th>Action</th></tr>${mine.map(c => `<tr><td>${c.last4}</td><td>${c.status}</td><td><button data-toggle="${c.id}">Freeze/Unfreeze</button> <button data-buy="${c.id}">Simulate $25 Purchase</button></td></tr>`).join('') || '<tr><td colspan="3">No cards issued.</td></tr>'}</table>`;
+      if (!blockers.length) q('#issue_card').onclick = () => { state.cards.push({ id: uid('card'), clientId: me.id, last4: String(Math.floor(1000 + Math.random() * 8999)), status: 'active', createdAt: now() }); log('card_issued', { clientId: me.id }); save(); renderCards(); };
+      document.querySelectorAll('[data-toggle]').forEach(btn => btn.onclick = () => { const c = state.cards.find(x => x.id === btn.dataset.toggle && x.clientId === me.id); c.status = c.status === 'active' ? 'frozen' : 'active'; log('card_toggle', { cardId: c.id, status: c.status }); save(); renderCards(); });
+      document.querySelectorAll('[data-buy]').forEach(btn => btn.onclick = () => {
+        const c = state.cards.find(x => x.id === btn.dataset.buy && x.clientId === me.id);
+        if (!c || c.status !== 'active') return alert('Card is not active.');
+        state.ledger.push({ id: uid('led'), clientId: me.id, type: 'card_purchase', amount: 25, currency: 'USD', direction: 'debit', ts: now(), source: c.id });
+        log('card_purchase', { cardId: c.id, amount: 25 });
+        save();
+        route = 'dashboard';
+        render();
+      });
+      return;
+    }
+    const rows = state.cards.map(c => `<tr><td>${state.users.find(u => u.id === c.clientId)?.email || c.clientId}</td><td>${c.last4}</td><td>${c.status}</td><td>${c.createdAt}</td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Admin Cards</h2><table><tr><th>Client</th><th>Last4</th><th>Status</th><th>Created</th></tr>${rows || '<tr><td colspan="4">No cards.</td></tr>'}</table>`;
+  }
+
+  function ratingsSummary() {
+    const arr = state.ratings;
+    const avg = (k) => arr.length ? (arr.reduce((a, r) => a + Number(r[k]), 0) / arr.length).toFixed(2) : 'N/A';
+    const dist = [1,2,3,4,5].map(n => `${n}:${arr.filter(r => Math.round((r.reliability + r.support + r.transparency) / 3) === n).length}`).join(' | ');
+    return { avg, dist };
+  }
+
+  function renderCompliance() {
+    const s = ratingsSummary();
+    q('#view').innerHTML = `<h2 class="section-title">Compliance Center</h2>
+      <div class="grid">
+        <div><h3>Posture</h3><ul><li>KYC/AML: ${state.compliance.kycAml}</li><li>Sanctions: ${state.compliance.sanctions}</li><li>Data Protection: ${state.compliance.dataProtection}</li><li>Incident Response: ${state.compliance.incidentResponse}</li><li>Change Mgmt: ${state.compliance.changeMgmt}</li><li>Vendor Risk: ${state.compliance.vendorRisk}</li></ul></div>
+        <div><h3>SLA / KPI</h3><ul><li>Uptime: ${state.compliance.uptime}</li><li>Latency: ${state.compliance.latency}</li><li>Error Rate: ${state.compliance.errorRate}</li><li>Last Deploy: ${state.compliance.lastDeploy}</li><li>Last Incident: ${state.compliance.lastIncident}</li></ul></div>
+        <div><h3>Ratings</h3><p>Reliability: ${s.avg('reliability')}</p><p>Support: ${s.avg('support')}</p><p>Transparency: ${s.avg('transparency')}</p><p>Distribution: ${s.dist}</p></div>
+      </div>
+      ${!isAdmin() && user() ? `<h3>Submit Service Rating</h3>
+        <label>Reliability (1-5)<input id="rr" type="number" min="1" max="5" value="5" /></label>
+        <label>Support (1-5)<input id="rs" type="number" min="1" max="5" value="5" /></label>
+        <label>Transparency (1-5)<input id="rt" type="number" min="1" max="5" value="5" /></label>
+        <label>Assertion<textarea id="ra"></textarea></label>
+        <label>Comment<textarea id="rc"></textarea></label>
+        <button id="rate_submit">Submit Rating</button>` : ''}
+      <h3>Incident Register</h3>
+      <table><tr><th>Severity</th><th>Status</th><th>Impact</th><th>Mitigation</th><th>RCA</th><th>Owner</th></tr>
+      ${state.incidents.map(i => `<tr><td>${i.severity}</td><td>${i.status}</td><td>${i.impact}</td><td>${i.mitigation}</td><td>${i.rca}</td><td>${i.owner}</td></tr>`).join('')}
+      </table>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button id="exp_user">Export User Transparency Pack</button>
+        <button id="exp_ratings">Export Ratings</button>
+        <button id="exp_incidents">Export Incidents</button>
+        ${isAdmin() ? '<button id="exp_comp">Export Compliance Report</button>' : ''}
+      </div>`;
+
+    if (!isAdmin() && user()) {
+      q('#rate_submit').onclick = () => {
+        const reliability = Number(q('#rr').value), support = Number(q('#rs').value), transparency = Number(q('#rt').value);
+        const vals = [reliability, support, transparency];
+        if (vals.some(v => !Number.isInteger(v) || v < 1 || v > 5)) return alert('Ratings must be integers between 1 and 5.');
+        state.ratings.push({ id: uid('rate'), clientId: user().id, reliability, support, transparency, assertion: q('#ra').value.trim(), comment: q('#rc').value.trim(), createdAt: now() });
+        log('rating_submitted', { clientId: user().id });
+        save();
+        renderCompliance();
+      };
+    }
+
+    q('#exp_user').onclick = () => {
+      if (!user()) return;
+      const me = user();
+      download('apextrust-user-transparency-pack.json', {
+        user: me,
+        kyc: state.kyc.find(k => k.clientId === me.id),
+        accounts: state.accounts.filter(a => a.clientId === me.id),
+        deposits: state.deposits.filter(d => d.clientId === me.id),
+        ledger: state.ledger.filter(l => l.clientId === me.id)
+      });
+    };
+    q('#exp_ratings').onclick = () => download('apextrust-ratings.json', state.ratings);
+    q('#exp_incidents').onclick = () => download('apextrust-incidents.json', state.incidents);
+    if (isAdmin()) q('#exp_comp').onclick = () => download('apextrust-compliance-report.json', { compliance: state.compliance, incidents: state.incidents, ratings: state.ratings, auditIntegrity: verifyAudit() });
+  }
+
+  function renderSettings() {
+    q('#view').innerHTML = `<h2 class="section-title">Settings</h2>
+      ${user() ? `<p>Signed in as <b>${user().email}</b></p>
+        <button id="consent">Record Policy Consent</button>
+        <button id="exp_audit">Export Audit Log</button>
+        <button id="tamper">Tamper Audit Entry (test)</button>
+        <button id="wipe">Clear Local Data</button>
+        <p>Audit Integrity: <b class="${verifyAudit() === 'OK' ? 'ok' : 'warn'}">${verifyAudit()}</b></p>` : '<p>Please sign in.</p>'}`;
+    if (!user()) return;
+    q('#consent').onclick = () => { state.consents.push({ id: uid('consent'), clientId: user().id, version: 'v1', ts: now() }); log('policy_consent', { clientId: user().id }); save(); alert('Consent recorded.'); };
+    q('#exp_audit').onclick = () => download('apextrust-audit-log.json', state.audit);
+    q('#tamper').onclick = () => { if (state.audit[1]) state.audit[1].actor = 'tampered@apextrust.bank'; save(); renderSettings(); };
+    q('#wipe').onclick = () => { localStorage.removeItem(KEY); state = structuredClone(initial); save(); route = 'landing'; render(); };
+  }
+
+  function renderAdminDashboard() {
+    if (!isAdmin()) return q('#view').innerHTML = '<h2>Admin Dashboard</h2><p>Admin access required.</p>';
+    q('#view').innerHTML = `<h2 class="section-title">Admin Dashboard</h2>
+      <div class="grid">
+        <div><div class="muted">Clients</div><div class="kpi">${state.users.filter(u => u.role === 'client').length}</div></div>
+        <div><div class="muted">Deposits</div><div class="kpi">${state.deposits.length}</div></div>
+        <div><div class="muted">Cards</div><div class="kpi">${state.cards.length}</div></div>
+        <div><div class="muted">Audit Integrity</div><div class="kpi ${verifyAudit() === 'OK' ? 'ok' : 'warn'}">${verifyAudit()}</div></div>
+      </div>`;
+  }
+
+  function renderAdminClients() {
+    if (!isAdmin()) return q('#view').innerHTML = '<h2>Admin Clients</h2><p>Admin access required.</p>';
+    const rows = state.users.filter(u => u.role === 'client').map(c => `<tr><td>${c.name}</td><td>${c.email}</td><td>${c.region}</td><td>${c.referenceCode}</td><td>${money(portfolio(c.id))}</td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Admin Clients</h2><table><tr><th>Name</th><th>Email</th><th>Region</th><th>Reference</th><th>Portfolio</th></tr>${rows || '<tr><td colspan="5">No clients yet.</td></tr>'}</table>`;
+  }
+
+  function renderAdminDeposits() { route = 'deposits'; renderDeposits(); }
+  function renderAdminCards() { route = 'cards'; renderCards(); }
+  function renderAdminKyc() { route = 'kyc'; renderKyc(); }
+
+  function renderAdminCompliance() {
+    if (!isAdmin()) return q('#view').innerHTML = '<h2>Admin Compliance/Governance</h2><p>Admin access required.</p>';
+    const rows = state.incidents.map(i => `<tr><td>${i.severity}</td><td>${i.status}</td><td>${i.owner}</td><td>${i.createdAt}</td><td>${i.resolvedAt || '-'}</td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Compliance / Governance</h2>
+      <h3>Controls Checklist + Evidence</h3>
+      <ul>
+        <li>KYC/AML control evidence reviewed weekly.</li>
+        <li>Sanctions screening reports retained.</li>
+        <li>Data protection controls mapped and attested.</li>
+        <li>Incident response runbook evidence tracked.</li>
+        <li>Change management approvals logged in CAB notes.</li>
+        <li>Vendor risk assessment reviewed quarterly.</li>
+      </ul>
+      <h3>Incident Register</h3>
+      <table><tr><th>Severity</th><th>Status</th><th>Owner</th><th>Created</th><th>Resolved</th></tr>${rows}</table>`;
+  }
+
+  function renderAdminAudit() {
+    if (!isAdmin()) return q('#view').innerHTML = '<h2>Ops/Audit Logs</h2><p>Admin access required.</p>';
+    const rows = state.audit.slice().reverse().map(a => `<tr><td>${a.ts}</td><td>${a.actor}</td><td>${a.action}</td><td>${a.prevHash}</td><td>${a.hash}</td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Ops / Audit Logs</h2>
+      <p>Chain Integrity: <b class="${verifyAudit() === 'OK' ? 'ok' : 'warn'}">${verifyAudit()}</b></p>
+      <button id="verify_btn">Verify Integrity</button>
+      <button id="exp_admin_audit">Export JSON</button>
+      <table><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Prev Hash</th><th>Hash</th></tr>${rows}</table>`;
+    q('#verify_btn').onclick = () => alert(`Integrity: ${verifyAudit()}`);
+    q('#exp_admin_audit').onclick = () => download('apextrust-admin-audit.json', state.audit);
+  }
+
+  function render() {
+    nav();
+    const routes = {
+      'landing': renderLanding,
+      'auth': renderAuth,
+      'dashboard': renderDashboard,
+      'accounts': renderAccounts,
+      'deposits': renderDeposits,
+      'kyc': renderKyc,
+      'cards': renderCards,
+      'compliance': renderCompliance,
+      'settings': renderSettings,
+      'admin-dashboard': renderAdminDashboard,
+      'admin-clients': renderAdminClients,
+      'admin-deposits': renderAdminDeposits,
+      'admin-cards': renderAdminCards,
+      'admin-kyc': renderAdminKyc,
+      'admin-compliance': renderAdminCompliance,
+      'admin-audit': renderAdminAudit
+    };
+    (routes[route] || renderLanding)();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
