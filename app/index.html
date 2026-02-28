@@ -434,9 +434,31 @@
     q('#view').innerHTML = `<h2 class="section-title">Admin Clients</h2><table><tr><th>Name</th><th>Email</th><th>Region</th><th>Reference</th><th>Portfolio</th></tr>${rows || '<tr><td colspan="5">No clients yet.</td></tr>'}</table>`;
   }
 
-  function renderAdminDeposits() { route = 'deposits'; renderDeposits(); }
-  function renderAdminCards() { route = 'cards'; renderCards(); }
-  function renderAdminKyc() { route = 'kyc'; renderKyc(); }
+  function renderAdminDeposits() {
+    if (!isAdmin()) return q('#view').innerHTML = '<h2>Admin Deposits</h2><p>Admin access required.</p>';
+    const rows = state.deposits.map(d => `<tr><td>${d.id}</td><td>${state.users.find(u => u.id === d.clientId)?.email || d.clientId}</td><td>${money(d.amount)}</td><td>${money(d.fee)}</td><td>${money(d.net)}</td><td>${d.status}</td><td>${d.expiresAt}</td><td>${d.createdAt}</td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Admin Deposits</h2>
+      <p class="muted">Institution operations view for quote lifecycle and settlement status across all clients.</p>
+      <table><tr><th>ID</th><th>Client</th><th>Gross</th><th>Fee</th><th>Net</th><th>Status</th><th>Expiry</th><th>Created</th></tr>${rows || '<tr><td colspan="8">No deposit activity.</td></tr>'}</table>`;
+  }
+
+  function renderAdminCards() {
+    if (!isAdmin()) return q('#view').innerHTML = '<h2>Admin Cards</h2><p>Admin access required.</p>';
+    const rows = state.cards.map(c => `<tr><td>${state.users.find(u => u.id === c.clientId)?.email || c.clientId}</td><td>${c.last4}</td><td>${c.status}</td><td>${c.createdAt}</td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Admin Cards</h2>
+      <p class="muted">Portfolio card program oversight for issuance and state controls.</p>
+      <table><tr><th>Client</th><th>Last4</th><th>Status</th><th>Created</th></tr>${rows || '<tr><td colspan="4">No cards issued.</td></tr>'}</table>`;
+  }
+
+  function renderAdminKyc() {
+    if (!isAdmin()) return q('#view').innerHTML = '<h2>Admin KYC</h2><p>Admin access required.</p>';
+    const rows = state.kyc.map(k => `<tr><td>${state.users.find(u => u.id === k.clientId)?.email || k.clientId}</td><td>${k.status}</td><td>${k.documents.length}</td><td>${k.updatedAt}</td><td><button data-approve="${k.clientId}">Approve</button> <button data-reject="${k.clientId}">Reject</button></td></tr>`).join('');
+    q('#view').innerHTML = `<h2 class="section-title">Admin KYC Records</h2>
+      <p class="muted">Decisioning console for client verification workflow controls.</p>
+      <table><tr><th>Client</th><th>Status</th><th>Docs</th><th>Updated</th><th>Action</th></tr>${rows || '<tr><td colspan="5">No KYC records.</td></tr>'}</table>`;
+    document.querySelectorAll('[data-approve]').forEach(btn => btn.onclick = () => { const r = state.kyc.find(k => k.clientId === btn.dataset.approve); r.status = 'approved'; r.updatedAt = now(); log('kyc_approved', { clientId: r.clientId, via: 'admin_kyc_page' }); save(); renderAdminKyc(); });
+    document.querySelectorAll('[data-reject]').forEach(btn => btn.onclick = () => { const r = state.kyc.find(k => k.clientId === btn.dataset.reject); r.status = 'rejected'; r.updatedAt = now(); log('kyc_rejected', { clientId: r.clientId, via: 'admin_kyc_page' }); save(); renderAdminKyc(); });
+  }
 
   function renderAdminCompliance() {
     if (!isAdmin()) return q('#view').innerHTML = '<h2>Admin Compliance/Governance</h2><p>Admin access required.</p>';
