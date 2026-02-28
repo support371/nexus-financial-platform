@@ -345,8 +345,12 @@ tbody tr:hover{background:var(---surface2)}
 <div id="app"></div>
 <div id="toast-container"></div>
 <div id="modal-container"></div>
+<script src="./config.js"></script>
 <script>
 'use strict';
+
+const API_BASE_URL = (window.__APP_CONFIG__?.NEXT_PUBLIC_API_BASE_URL || window.__APP_CONFIG__?.APP_API_BASE_URL || 'http://localhost:7072').replace(/\/$/, '');
+window.API_BASE_URL = API_BASE_URL;
 
 // ==================== CONFIG ====================
 const SK = 'apextrust_banking_v1';

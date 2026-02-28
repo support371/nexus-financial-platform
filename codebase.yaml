@@ -1,0 +1,35 @@
+services:
+  spa:
+    type: static
+    location: app
+    run:
+      - python3 -m http.server 3000 --directory app
+    env:
+      APP_API_BASE_URL: http://localhost:7072
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:7072
+    ports:
+      - 3000
+
+  api:
+    type: nestjs
+    location: apps/api
+    run:
+      - npm install
+      - npm run start:dev
+    env:
+      PORT: 7072
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nexus_financial?schema=public
+    ports:
+      - 7072
+
+  postgres:
+    type: postgres
+    run:
+      - docker compose up postgres
+    env:
+      POSTGRES_DB: nexus_financial
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432
