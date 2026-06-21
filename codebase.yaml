@@ -20,8 +20,27 @@ services:
       PORT: 7072
       CORS_ALLOWED_ORIGINS: http://localhost:3000
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nexus_financial?schema=public
+      FINTECH_CORE_API_URL: http://localhost:8000
+      CORE_REQUEST_TIMEOUT_MS: 5000
+    endpoints:
+      - GET /api/health
+      - GET /api/system/status
+    safety:
+      operating_mode: sandbox
+      live_money_movement: false
+      financial_write_proxy: false
     ports:
       - 7072
+
+  fintech-core:
+    type: external-fastapi
+    repository: support371/fintech-microservices-core
+    connection: read-only-health
+    env:
+      PAYMENTS_MODE: sandbox
+      CARD_ISSUANCE_MODE: sandbox
+    ports:
+      - 8000
 
   postgres:
     type: postgres
