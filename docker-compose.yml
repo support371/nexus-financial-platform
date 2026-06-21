@@ -18,6 +18,10 @@ services:
       PORT: ${PORT:-7072}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/nexus_financial?schema=public}
+      FINTECH_CORE_API_URL: ${FINTECH_CORE_API_URL:-http://host.docker.internal:8000}
+      CORE_REQUEST_TIMEOUT_MS: ${CORE_REQUEST_TIMEOUT_MS:-5000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - postgres
     ports:
